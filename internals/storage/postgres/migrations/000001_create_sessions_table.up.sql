@@ -1,0 +1,1 @@
+create table sessions(session_id varchar(36),user_id int,expires_at timestamp);

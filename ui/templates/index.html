@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<head>
+    <title>Talk Let</title>
+    <script src="../../Static/js/htmx.min.js"></script>
+</head>
+<body>
+    <h1>welcome To talk let</h1>
+    <div id="div-tag"></div>
+    <form hx-post="/update" hx-target="#div-tag" hx-swap="beforeend" >
+        <input placeholder="message" name="msg"/>
+        <button >click here!! </button>
+    </form>
+    
+</body>

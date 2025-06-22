@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Talk Let - Registration</title>
+  <script src="../../Static/js/htmx.min.js"></script>
+  <link rel="stylesheet" href="../Static/css/register.css" />
+</head>
+<body>
+  <div class="register-container">
+    <h1>TalkLet Registration</h1>
+    <form hx-post="/talklet/new-register" hx-target="#sent-otp">
+      <div class="form-group">
+        <!-- <label for="username">Username</label> -->
+        <input type="text" name="username" id="username" placeholder="Username" required/><br></br>
+        <!-- <label for="username">Mobile</label> -->
+        <input type="text" name="mobile_no" id="mobile" pattern="[0-9]{10}" placeholder="Mobile No" required/><br></br>
+        <!-- <label for="Location">Location</label> -->
+        <input type="text" name="location" id="Location" placeholder="Location" required/><br></br>
+        <label>Set Password</label>
+        <input type="password" name="password" id="pass" placeholder="Enter Password" required/><br></br>
+        <input type="password" id="re-pass" placeholder="Re-enter Password" required/><br></br>
+        <label for="Email">Email</label>
+        <div class="input-with-button">
+            <input type="email" id="email" name="email"  required placeholder="Enter your email id" />
+            <button
+             onclick="SendOTP()"
+             type="button" 
+              class="send-otp-btn" id="send-btn">send Otp</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="otp">OTP</label>
+        <input type="text" id="otp" name="otp" pattern="[0-9]{6}" required placeholder="Enter 6-digit OTP" />
+      </div>
+      <button class="register-btn" type="submit">Register</button>
+    </form>
+    <hr>
+    <div id="sent-otp"></div>
+  </div>
+</body>
+<script>
+  function SendOTP(){
+    const username=document.getElementById("username").value
+    const email=document.getElementById("email").value
+    const pass=document.getElementById("pass").value
+    const re_pass=d=document.getElementById("re-pass").value
+    console.log(email,pass,re_pass)
+    const sent_otp=document.getElementById("sent-otp")
+    console.log("email - ",email)
+    if(pass!=re_pass)
+    {
+        sent_otp.innerHTML="<p>Password Mismatch ❌</p>"
+        return
+    }
+    const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+    if(!regex.test(email))
+    {
+     sent_otp.innerHTML="<p>Invalid Email ❌❌</p>" 
+     return
+    }
+    async function ApiCallForOTP(){
+      const response=await fetch("/talklet/send-otp-register",{
+        method : "POST",
+        headers : {
+          "content-Type" : "application/x-www-form-urlencoded"
+        },
+        body: new URLSearchParams({ username:username,email: email })
+      })
+      sent_otp.innerHTML=await response.text()
+    }
+    ApiCallForOTP()
+  }
+</script>
+
+</html>

@@ -1,0 +1,15 @@
+1.  Sessions:
+
+    create table sessions(session_id varchar(36),user_id int,expires_at timestamp);
+
+
+2. Users : 
+
+   CREATE TABLE users (
+    user_id SERIAL PRIMARY KEY,
+    user_name VARCHAR(50) UNIQUE,
+    mobile_no VARCHAR(10),
+    location VARCHAR(40),
+    password VARCHAR(100),
+    email VARCHAR(150) UNIQUE
+);

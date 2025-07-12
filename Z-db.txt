@@ -13,3 +13,25 @@
     password VARCHAR(100),
     email VARCHAR(150) UNIQUE
 );
+
+
+3. chatlist : 
+
+
+    CREATE TABLE chatlist (
+    sender_id INT REFERENCES users(user_id) ,
+    receiver_id INT REFERENCES users(user_id) ,
+    last_msg TEXT DEFAULT 'No Messages yet',
+    created_at TIMESTAMP ,
+    PRIMARY KEY (sender_id, receiver_id)
+);
+
+4. messages : 
+
+    create table messages (
+        msg_id serial primary key,
+        sender_id int references users(user_id),
+        receiver_id int references users(user_id),
+        msg_type text,
+        msg_content text,created_at timestamp
+);

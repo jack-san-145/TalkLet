@@ -1,14 +1,298 @@
 <!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>Talk Let</title>
-    <script src="../../Static/js/htmx.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Talk Let</title>
+  <script src="../Static/js/htmx.min.js"></script>
+  <script src="../Static/js/alpine.min.js" defer></script>
+  <link rel="stylesheet" href="../Static/css/index.css"/>
 </head>
 <body>
-    <h1>welcome To talk let</h1>
-    <div id="div-tag"></div>
-    <form hx-post="/update" hx-target="#div-tag" hx-swap="beforeend" >
-        <input placeholder="message" name="msg"/>
-        <button >click here!! </button>
-    </form>
-    
+  <div id="ui-variables" x-data="{ chatlist : {{ .Chat_list_go | tojson }} , chosedOption : 'Home' , IsChat : false , active_key : 0 , active_user : {}} ">
+    <div id="main-layout" 
+    x-init="console.log('chatlist - ',chatlist)"
+    >
+
+      <!-- Left Icon Sidebar -->
+      <div class="left-icons" x-init="console.log('chosedOption - ',chosedOption)">
+        <button class="icon-btn" @click="chosedOption = 'Home'">🏠</button>
+        <button class="icon-btn" @click="chosedOption = 'location'">📍</button>
+        <button class="icon-btn">💬</button>
+        <button class="icon-btn">👥</button>
+        <button class="icon-btn">⚙️</button>
+        <img src="https://i.pravatar.cc/40?u=user-profile" class="profile-pic"/>
+      </div>
+
+      <!-- Sidebar -->
+       <template x-if="chosedOption == 'Home'" >
+        <aside class="sidebar" >
+          <header class="sidebar-header">
+            <input type="text" placeholder="Search chats..." class="search-input"/>
+          </header>
+
+          <ul class="chat-list">
+            <template x-for="contact in chatlist" :key="contact.ContactId">
+              <li :id="contact.ContactId" :class="active_key == contact.ContactId ? 'chat-item active ' : 'chat-item' ">
+                <img src="https://i.pravatar.cc/40?u=jack" alt="Profile"/>
+                <div  class="chat-info" x-on:click="IsChat=true ; active_key = contact.ContactId ; active_user = contact ; ">
+                  <h4 x-text="contact.ContactName"></h4>
+                  <p x-text="contact.LastMsg"></p>
+                </div>
+                <span class="time" x-text="contact.CreatedAt"></span>
+              </li>
+            </template>
+          </ul>
+        </aside>
+       </template>
+       <template x-if="chosedOption == 'location'">
+        <aside class="sidebar">
+          <h3>find people's in your location </h3>
+          <ul class="chat-list"></ul>
+        </aside>
+
+       </template>
+      <!-- Chat Section -->
+      <template x-if="IsChat">
+        <main class="chat-section">
+          <header class="chat-header">
+              <div class="chat-header-left" >
+                <a :href="`/talklet/profile/${active_user.ContactId}`" >
+                    <img src="https://i.pravatar.cc/40?u=santhosh" alt="Profile"/>
+                </a>
+                <div class="chat-user-info">
+                  <h3 x-text="active_user.ContactName"></h3>
+                  <p>Online</p>
+                </div>
+              </div>
+              <div class="chat-header-actions">
+                <button class="icon-btn">📞</button>
+                <button class="icon-btn">ℹ️</button>
+              </div>
+        </header>
+
+          <div id="chat-messages">
+            <div class="message friend">
+              <span class="text">Hello!</span>
+              <span class="msg-frd-time">10:23 AM</span>
+            </div>
+            <div class="message you">
+              <span class="text">What's up?</span>
+              <span class="msg-you-time">10:23 AM</span>
+            </div>
+            <div class="message friend" x-text="active_user.LastMsg"></div>
+          </div>
+          <!-- <div id="chat-messages">
+            <h3>end-to-end encryption</h3>
+          </div>
+           -->
+
+          <div class="chat-input-bar">
+            <input id="input-msg" required type="text" placeholder="Type a message..." onclick="listenInput() " />
+            <div class="chat-icons">
+              📎 🎤 <button onclick="sendThisMSg()">send</button>
+            </div>
+          </div>
+        </main>
+      </template>
+      <template x-if="!IsChat">
+        <h1>Talk Let </h1>
+      </template>
+    </div>
+  </div>
 </body>
+<script>
+
+  let alpineVars
+  document.addEventListener("alpine:initialized",()=>{
+    const el=document.querySelector("#ui-variables")
+    alpineVars = Alpine.$data(el)
+    console.log(alpineVars)
+    console.log(alpineVars.chatlist)
+    // console.log("users - ",alphineVars.users[0].name)
+    console.log("ischat - ",alpineVars.IsChat)
+    console.log("ischat - ",alpineVars.active_key)
+    alpineVars.chatlist.map((contact)=>{
+      contact.CreatedAt=convertTimeForChatList(contact.CreatedAt)
+    })
+  })  
+
+  let input_msg
+  const socket=new WebSocket(`ws://${window.location.hostname}:8989/ws`)
+  const search_input=document.getElementsByClassName("search-input")
+  socket.onopen=()=>{
+    console.log("websocket connected")
+  }
+  socket.onclose=()=>{
+    console.log("websocket closed")
+  }
+
+  function addLastMsg(receiver_id,last_msg,time){
+    const contact = alpineVars.chatlist.find((contact => contact.ContactId == receiver_id ))
+    console.log("contact for last msg - ",contact,receiver_id)
+    contact.LastMsg=last_msg
+    contact.CreatedAt=time
+    
+  }
+
+  function msgYou(received_msg){
+      const chat_messages=document.getElementById("chat-messages")
+      const send_you_div=document.createElement("div")
+      send_you_div.classList="message you"
+      const span1=document.createElement("span")
+      span1.classList="text"
+      span1.textContent=received_msg.content
+      const span2=document.createElement("span")
+      span2.classList="msg-you-time"
+      console.log("before calculated - ",received_msg.created_at)
+      span2.textContent=calculateTimeforMsg(received_msg.created_at)
+      send_you_div.appendChild(span1)
+      send_you_div.appendChild(span2)
+      chat_messages.appendChild(send_you_div)
+      addLastMsg(received_msg.receiver_id,received_msg.content,convertTimeForChatList(received_msg.created_at))
+      scrollBottom()
+      addToFirst(received_msg.receiver_id)
+      console.log("received_msg.id - msg you",received_msg.receiver_id)
+  }
+
+  function msgFrd(received_msg){
+    const chat_messages=document.getElementById("chat-messages")
+    const send_frd_div=document.createElement("div")
+    send_frd_div.classList="message friend"
+    const span1=document.createElement("span")
+    span1.classList="text"
+    span1.textContent=received_msg.content
+    const span2=document.createElement("span")
+    span2.classList="msg-frd-time"
+    span2.textContent=calculateTimeforMsg(received_msg.created_at)
+    send_frd_div.appendChild(span1)
+    send_frd_div.appendChild(span2)
+    chat_messages.appendChild(send_frd_div)
+    addLastMsg(received_msg.sender_id,received_msg.content,convertTimeForChatList(received_msg.created_at))
+    scrollBottom()
+    addToFirst(received_msg.sender_id)
+    console.log("received_msg.id - msg frd",received_msg.sender_id)
+  }
+
+  socket.onmessage=function(event)
+  {
+    const received_msg=JSON.parse(event.data)
+    console.log("received msg from server - ",received_msg)
+    if(received_msg.is_ack=="ack")
+    {
+      msgYou(received_msg)
+    }else{
+      msgFrd(received_msg)
+    }
+    
+  }
+  function addToFirst(id){
+    console.log("to first id - ",id)
+    const tofirst=document.getElementById(String(id))
+    console.log("tofirst - ",tofirst)
+    const chat_list=document.getElementsByClassName("chat-list")[0]
+    console.log(chat_list)
+    chat_list.prepend(tofirst)
+    
+    console.log("findUserById - ",findUserById(id))
+  }
+
+  function findUserById(id){
+   const index = id-1
+   console.log(alpineVars.chatlist[index])
+  }
+
+  function sendThisMSg()
+  {
+    const chat_messages=document.getElementById("chat-messages")
+    const input_msg=document.getElementById("input-msg")
+    if (input_msg.type="text"){
+      console.log("true it is text - ",input_msg.type)
+    }
+    console.log(alpineVars.active_key)
+    console.log(input_msg.value)
+    const send_msg={
+      "receiver_id" : alpineVars.active_key,
+      "content" : input_msg.value,
+      "type" : input_msg.type
+    }
+    if(input_msg.value!=""){
+      socket.send(JSON.stringify(send_msg))
+      console.log("sent before ack - ",send_msg)
+      input_msg.value=""
+     
+    }
+  }
+
+ 
+
+  
+  function calculateTimeforMsg(goTimeString) {
+  // Remove microseconds and timezone name
+  const cleaned = goTimeString
+    .replace(/\.\d+/, '')        // remove `.123456`
+    .replace(/ [A-Z]+$/, '');    // remove `IST`
+
+  const date = new Date(cleaned);
+
+  if (isNaN(date)) return 'Invalid Date';
+
+  // Format to "hh:mm AM/PM"
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit'
+  });
+}
+
+
+  function scrollBottom()
+  {
+    const chat=document.getElementById("chat-messages")
+    chat.scrollTop=chat.scrollHeight
+  }
+
+  function listenInput(){
+    input_msg=document.getElementById("input-msg")
+    input_msg.addEventListener("keypress",(event)=>{
+      if(event.key=="Enter"){
+        sendThisMSg()
+      }
+    })
+  }
+
+  function convertTimeForChatList(goTimeString) {
+  // Step 1: Clean the Go timestamp
+      const cleaned = goTimeString
+        .replace(/\.\d+/, '')        // remove microseconds
+        .replace(/ [A-Z]+$/, '');    // remove timezone label like IST
+
+      const date = new Date(cleaned);
+      if (isNaN(date)) return 'Invalid Date';
+
+      // Step 2: Reference today and yesterday
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const yesterday = new Date(today);
+      yesterday.setDate(today.getDate() - 1);
+
+      const inputDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+      // Step 3: Compare
+      if (inputDate.getTime() === today.getTime()) {
+        return 'Today';
+      } else if (inputDate.getTime() === yesterday.getTime()) {
+        return 'Yesterday';
+      } else {
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const dd = String(date.getDate()).padStart(2, '0');
+        const yy = String(date.getFullYear()).slice(-2);
+        return `${mm}/${dd}/${yy}`;
+      }
+}
+
+function search(){
+  alpineVars.chatlist.filter()
+}
+
+</script>
+</html>

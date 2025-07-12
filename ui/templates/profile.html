@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Talk Let - Profile</title>
+  <link rel="stylesheet" href="/Static/css/profile.css"/>
+  <script src="/Static/js/alpine.min.js" defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="profile-page" x-data="{{ . | tojson }}">
+    <div class="profile-header">
+      <img src="https://i.pravatar.cc/150?u=santhosh" alt="Profile Picture" class="profile-pic"/>
+      <h2 class="username" x-text="name"></h2>
+      <p class="status">Available • Online</p>
+
+      <div class="action-buttons">
+        <button class="icon-btn">📞</button>
+        <button class="icon-btn">🎥</button>
+        <button class="icon-btn">ℹ️</button>
+      </div>
+    </div>
+
+    <div class="profile-details">
+      <h3>About</h3>
+      <p x-text="about"></p>
+
+      <h3 >Mobile</h3>
+      <p x-text="mobile"></p>
+
+      <h3 >Email</h3>
+      <p x-text="email"></p>
+
+      <h3>Joined</h3>
+      <p x-text="joined"></p>
+    </div>
+  </div>
+</body>
+</html>

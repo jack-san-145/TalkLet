@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"net/http"
 	"tet/internals/storage/postgres"
+	"tet/internals/storage/redis"
 
 	"time"
 )
@@ -29,19 +30,22 @@ func LoginValidationHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	username := r.FormValue("username")
 	password := r.FormValue("password")
-	if !postgres.ValidateLogin(username, password) {
+	userId, isValid := postgres.ValidateLogin(username, password)
+	if !isValid {
 		w.Write([]byte("<p>Invalid username or Password ❌</p>"))
 		return
 	}
-	session_id := postgres.GenerateSessionID()
+	session := postgres.GenerateSessionID(userId)
+	redis.SetSessionToRdb(session)
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_id",
-		Value:    session_id,
+		Value:    session.Session_id,
 		Path:     "/",
 		Expires:  time.Now().Add(3 * time.Hour),
-		HttpOnly: true,
+		HttpOnly: false,
 		Secure:   false,
-		SameSite: http.SameSiteStrictMode,
+		SameSite: http.SameSiteLaxMode,
+		// SameSite: http.SameSiteStrictMode,
 	})
 	fmt.Println("successfully logged in")
 	w.Header().Set("Hx-Redirect", "/talklet/serve-index")

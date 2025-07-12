@@ -6,6 +6,8 @@ import (
 	"os"
 	"tet/internals/handlers"
 	"tet/internals/storage/postgres"
+	"tet/internals/storage/redis"
+	"tet/internals/websocket"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
@@ -27,8 +29,11 @@ func main() {
 	router.Post("/talklet/new-register", handlers.AccountRegisterHandler)
 	router.Post("/talklet/validate-login", handlers.LoginValidationHandler)
 	router.Get("/talklet/serve-index", handlers.ServeIndex)
+	router.Get("/talklet/profile/{id}", handlers.ProfileHandler)
+	router.Get("/ws", websocket.UpgradeToWebsocket)
 
-	postgres.ConnectToDb() //connect to postgres
+	postgres.ConnectToDb()    //connect to postgres
+	redis.CreateRedisClient() //create redis client
 
 	fmt.Println("server running")
 	port := ":" + os.Getenv("PORT")

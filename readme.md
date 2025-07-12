@@ -38,3 +38,9 @@
 - 🧑‍💻 **Developer Teams** — who want self-hosted internal messaging  
 - 🌐 **NGOs & FOSS Communities** — where privacy and transparency matter  
 - 🏠 **Local Network Usage** — offices, labs, rural intranet, and more
+
+## Screenshots
+<img width="1439" height="814" alt="Screenshot 2025-07-12 at 8 38 24 PM" src="https://github.com/user-attachments/assets/c7bb1a13-2455-4fa5-879d-006d8625e6a9" />
+
+<img width="1226" height="793" alt="Screenshot 2025-07-12 at 8 38 44 PM" src="https://github.com/user-attachments/assets/1cc94b67-7a7c-4f96-beb8-a8e2684ac701" />
+

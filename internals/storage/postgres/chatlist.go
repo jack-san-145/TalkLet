@@ -8,7 +8,7 @@ import (
 
 func LoadChatlist(userId int) []models.Chatlist {
 	var ChatLists []models.Chatlist
-	query := "select receiver_id,last_msg,created_at from chatlist where sender_id = $1 "
+	query := "select receiver_id,last_msg,created_at from chatlist where sender_id = $1 and is_group = FALSE"
 	rows, err := Db.Query(query, userId)
 	if err != nil {
 		fmt.Println("error while fetching chatlist from db - ", err)

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
-	"tet/internals/models"
+	// "tet/internals/models"
 	"tet/internals/storage/postgres"
 )
 
@@ -20,10 +20,12 @@ func ServeIndex(w http.ResponseWriter, r *http.Request) {
 	// 	fmt.Println("file not found - ", err)
 	// 	return
 	// }
+
 	fmt.Println(Chatlist)
-	err := templ.Execute(w, map[string][]models.Chatlist{
-		"Chat_list_go": Chatlist,
-	})
+	// err := templ.Execute(w, map[string][]models.Chatlist{
+	// 	"Chat_list_go": Chatlist,
+	// })
+	err := templ.Execute(w, nil)
 	if err != nil {
 		fmt.Println("error while executing - ", err)
 	}

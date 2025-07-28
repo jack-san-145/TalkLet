@@ -91,8 +91,8 @@ func UpgradeToWebsocket(w http.ResponseWriter, r *http.Request) {
 func sendAck(sender_id int, msg_sent_by_sender *models.Message, msg_type int) {
 	msg_sent_by_sender.IsAck = "ack"
 	msg_sent_by_sender.SenderID = sender_id
-	postgres.StoreMessagesPostDB(*msg_sent_by_sender)
-	postgres.AddLastMsgToChatlist(sender_id, msg_sent_by_sender.ReceiverID, msg_sent_by_sender.Content, msg_sent_by_sender.CreatedAt)
+	go postgres.StoreMessagesPostDB(*msg_sent_by_sender)
+	go postgres.AddLastMsgToChatlist(sender_id, msg_sent_by_sender.ReceiverID, msg_sent_by_sender.Content, msg_sent_by_sender.CreatedAt)
 	send_back_ack, err := json.Marshal(msg_sent_by_sender)
 	if err != nil {
 		fmt.Println("error while marshal ack - ", err)

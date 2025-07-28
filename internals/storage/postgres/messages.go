@@ -19,13 +19,13 @@ func StoreMessagesPostDB(message models.Message) {
 
 }
 
-func LoadMessages(SenderID int, ReceiverID int) {
+func LoadChatMessagesPDb(userID int, contactID int, limit int, offset int) ([]models.Message, error) {
 	var AllMessages []models.Message
-	query := "select * from messages where sender_id =$1 and receiver_id = $2 "
-	rows, err := Db.Query(query, SenderID, ReceiverID)
+	query := "select * from messages where sender_id =$1 and receiver_id = $2 order by msg_id desc limit $3 offset $4 "
+	rows, err := Db.Query(query, userID, contactID, limit, offset)
 	if err == sql.ErrNoRows {
 		fmt.Println("no messages ")
-		return
+		return nil, fmt.Errorf("Empty chat")
 	}
 	for rows.Next() {
 		var message models.Message
@@ -40,5 +40,6 @@ func LoadMessages(SenderID int, ReceiverID int) {
 		fmt.Println("message - ", message)
 		AllMessages = append(AllMessages, message)
 	}
-	fmt.Printf("message for the sender_id - %v is %v", SenderID, AllMessages)
+	fmt.Printf("message for the sender_id - %v is %v", userID, AllMessages)
+	return AllMessages, nil
 }

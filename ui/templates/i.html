@@ -1,24 +1,121 @@
-let alpineVars
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Talk Let</title>
+  <script src="../Static/js/htmx.min.js"></script>
+  <script src="../Static/js/alpine.min.js" defer></script>
+  <link rel="stylesheet" href="../Static/css/index.css"/>
+</head>
+<body>
+  <div id="ui-variables" x-data="{ chatlist : {{ .Chat_list_go | tojson }} , chosedOption : 'Home' , IsChat : false , active_key : 0 , active_user : {}} ">
+    <div id="main-layout" 
+    x-init="console.log('chatlist - ',chatlist)"
+    >
+
+      <!-- Left Icon Sidebar -->
+      <div class="left-icons" x-init="console.log('chosedOption - ',chosedOption)">
+        <button class="icon-btn" @click="chosedOption = 'Home'">🏠</button>
+        <button class="icon-btn" @click="chosedOption = 'location'">📍</button>
+        <button class="icon-btn">💬</button>
+        <button class="icon-btn">👥</button>
+        <button class="icon-btn">⚙️</button>
+        <img src="https://i.pravatar.cc/40?u=user-profile" class="profile-pic"/>
+      </div>
+
+      <!-- Sidebar -->
+       <template x-if="chosedOption == 'Home'" >
+        <aside class="sidebar" >
+          <header class="sidebar-header">
+            <input type="text" placeholder="Search chats..." class="search-input"/>
+          </header>
+
+          <ul class="chat-list">
+            <template x-for="contact in chatlist" :key="contact.ContactId">
+              <li :id="contact.ContactId" :class="active_key == contact.ContactId ? 'chat-item active ' : 'chat-item' ">
+                <img src="https://i.pravatar.cc/40?u=jack" alt="Profile"/>
+                <div  class="chat-info" x-on:click="IsChat=true ; active_key = contact.ContactId ; active_user = contact ; ">
+                  <h4 x-text="contact.ContactName"></h4>
+                  <p x-text="contact.LastMsg"></p>
+                </div>
+                <span class="time" x-text="contact.CreatedAt"></span>
+              </li>
+            </template>
+          </ul>
+        </aside>
+       </template>
+       <template x-if="chosedOption == 'location'">
+        <aside class="sidebar">
+          <h3>find people's in your location </h3>
+          <ul class="chat-list"></ul>
+        </aside>
+
+       </template>
+      <!-- Chat Section -->
+      <template x-if="IsChat">
+        <main class="chat-section">
+          <header class="chat-header">
+              <div class="chat-header-left" >
+                <a :href="`/talklet/profile/${active_user.ContactId}`" >
+                    <img src="https://i.pravatar.cc/40?u=santhosh" alt="Profile"/>
+                </a>
+                <div class="chat-user-info">
+                  <h3 x-text="active_user.ContactName"></h3>
+                  <p>Online</p>
+                </div>
+              </div>
+              <div class="chat-header-actions">
+                <button class="icon-btn">📞</button>
+                <button class="icon-btn">ℹ️</button>
+              </div>
+        </header>
+
+          <div id="chat-messages">
+            <div class="message friend">
+              <span class="text">Hello!</span>
+              <span class="msg-frd-time">10:23 AM</span>
+            </div>
+            <div class="message you">
+              <span class="text">What's up?</span>
+              <span class="msg-you-time">10:23 AM</span>
+            </div>
+            <div class="message friend" x-text="active_user.LastMsg"></div>
+          </div>
+          <!-- <div id="chat-messages">
+            <h3>end-to-end encryption</h3>
+          </div>
+           -->
+
+          <div class="chat-input-bar">
+            <input id="input-msg" required type="text" placeholder="Type a message..." onclick="listenInput() " />
+            <div class="chat-icons">
+              📎 🎤 <button onclick="sendThisMSg()">send</button>
+            </div>
+          </div>
+        </main>
+      </template>
+      <template x-if="!IsChat">
+        <h1>Talk Let </h1>
+      </template>
+    </div>
+  </div>
+</body>
+<script>
+
+  let alpineVars
   document.addEventListener("alpine:initialized",()=>{
     const el=document.querySelector("#ui-variables")
     alpineVars = Alpine.$data(el)
     console.log(alpineVars)
-    console.log(Alpine.store('globalVar').chatlist)
+    console.log(alpineVars.chatlist)
     // console.log("users - ",alphineVars.users[0].name)
     console.log("ischat - ",alpineVars.IsChat)
-    console.log("active_chat from js  - ",Alpine.store('globalVar').active_chat)
-    Alpine.store('globalVar').chatlist.map((contact)=>{
+    console.log("ischat - ",alpineVars.active_key)
+    alpineVars.chatlist.map((contact)=>{
       contact.CreatedAt=convertTimeForChatList(contact.CreatedAt)
     })
   })  
-
-  function activeChatfunc(contact){
-    LoadOlderMessages(contact.ContactId); 
-    alpineVars.IsChat=true; 
-    Alpine.store('globalVar').active_chat = contact.ContactId;
-    alpineVars.active_user = contact;
-    console.log('active chat - ',Alpine.store('globalVar').active_chat)
-  }
 
   let input_msg
   const socket=new WebSocket(`ws://${window.location.hostname}:8989/ws`)
@@ -31,7 +128,7 @@ let alpineVars
   }
 
   function addLastMsg(receiver_id,last_msg,time){
-    const contact = Alpine.store('globalVar').chatlist.find((contact => contact.ContactId == receiver_id ))
+    const contact = alpineVars.chatlist.find((contact => contact.ContactId == receiver_id ))
     console.log("contact for last msg - ",contact,receiver_id)
     contact.LastMsg=last_msg
     contact.CreatedAt=time
@@ -56,8 +153,6 @@ let alpineVars
       scrollBottom()
       addToFirst(received_msg.receiver_id)
       console.log("received_msg.id - msg you",received_msg.receiver_id)
-      console.log('chat_messages - ',chat_messages)
-      console.log('msd div - ',send_you_div)
   }
 
   function msgFrd(received_msg){
@@ -104,21 +199,20 @@ let alpineVars
 
   function findUserById(id){
    const index = id-1
-   console.log(Alpine.store('globalVar').chatlist[index])
+   console.log(alpineVars.chatlist[index])
   }
 
   function sendThisMSg()
   {
-    console.log("sending msg working .. ")
     const chat_messages=document.getElementById("chat-messages")
     const input_msg=document.getElementById("input-msg")
     if (input_msg.type="text"){
       console.log("true it is text - ",input_msg.type)
     }
-    console.log("active_chat js  - ",Alpine.store('globalVar').active_chat)
+    console.log(alpineVars.active_key)
     console.log(input_msg.value)
     const send_msg={
-      "receiver_id" :  Alpine.store('globalVar').active_chat,
+      "receiver_id" : alpineVars.active_key,
       "content" : input_msg.value,
       "type" : input_msg.type
     }
@@ -158,10 +252,8 @@ let alpineVars
   }
 
   function listenInput(){
-
     input_msg=document.getElementById("input-msg")
     input_msg.addEventListener("keypress",(event)=>{
-      console.log("listening input . .")
       if(event.key=="Enter"){
         sendThisMSg()
       }
@@ -199,14 +291,8 @@ let alpineVars
 }
 
 function search(){
-  Alpine.store('globalVar').chatlist.filter()
+  alpineVars.chatlist.filter()
 }
 
-function handleScroll(event){
-  const el=event.target
-  console.log('scroll chat - ',Alpine.store('globalVar').active_chat)
-  if(el.scrollTop==0){
-    console.log('reached top - ')
-    LoadOlderMessages()
-  } 
-}
+</script>
+</html>

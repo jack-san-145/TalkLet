@@ -1,30 +1,39 @@
 1.  Sessions:
 
-    create table sessions(session_id varchar(36),user_id int,expires_at timestamp);
+    create table sessions(
+        session_id varchar(36),
+        user_id int,
+        expires_at timestamp
+    );
 
 
 2. Users : 
 
    CREATE TABLE users (
-    user_id SERIAL PRIMARY KEY,
-    user_name VARCHAR(50) UNIQUE,
-    mobile_no VARCHAR(10),
-    location VARCHAR(40),
-    password VARCHAR(100),
-    email VARCHAR(150) UNIQUE
-);
+        user_id SERIAL PRIMARY KEY,
+        user_name VARCHAR(50) UNIQUE,
+        mobile_no VARCHAR(10),
+        location VARCHAR(40),
+        password VARCHAR(100),
+        email VARCHAR(150) UNIQUE
+    );
 
 
 3. chatlist : 
 
-
     CREATE TABLE chatlist (
-    sender_id INT REFERENCES users(user_id) ,
-    receiver_id INT REFERENCES users(user_id) ,
-    last_msg TEXT DEFAULT 'No Messages yet',
-    created_at TIMESTAMP ,
-    PRIMARY KEY (sender_id, receiver_id)
-);
+        sender_id INT REFERENCES users(user_id) ,
+        receiver_id INT REFERENCES users(user_id) ,
+        last_msg TEXT DEFAULT 'No Messages yet',
+        created_at TIMESTAMP ,
+        is_group boolean,
+        group_id int,
+        lst_msg_id int,
+        deleted_msg_id int,
+        foreign key(user_id) references users(user_id),
+        PRIMARY KEY (sender_id, receiver_id),
+        foreign key(group_id) references allgroups(group_id)
+    );
 
 4. messages : 
 
@@ -34,4 +43,25 @@
         receiver_id int references users(user_id),
         msg_type text,
         msg_content text,created_at timestamp
-);
+    );
+
+
+5. allgroups :
+
+    create table allgroups (
+        group_id serial primary key,
+        group_name varchar(100),
+        created_at timestamp default current_timestamp,
+        admin jsonb
+    );
+ 
+ 
+6. groupmembers :
+
+    create table groupmembers (
+        group_id serial,
+        user_id int,
+        admin jsonb,
+        foreign key(user_id) references users(user_id),
+        primary key(group_id,user_id)
+    );

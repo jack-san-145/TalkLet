@@ -32,6 +32,9 @@ func main() {
 	router.Get("/talklet/profile/{id}", handlers.ProfileHandler)
 	router.Get("/ws", websocket.UpgradeToWebsocket)
 
+	router.Get("/talklet/chat-history/{contact_id}", handlers.LoadChatMessages)
+	router.Get("/talklet/get-all-OTO-chatlist", handlers.OneToOneChatlist)
+
 	postgres.ConnectToDb()    //connect to postgres
 	redis.CreateRedisClient() //create redis client
 

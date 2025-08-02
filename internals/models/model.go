@@ -8,7 +8,7 @@ type User struct {
 	Name      string
 	Mobile_no string
 	Location  string
-	Password  string
+	Password  []byte
 	Email     string
 }
 
@@ -44,11 +44,8 @@ type Chatlist struct {
 	CreatedAt   string
 }
 
-// type MessageDB struct {
-// 	MsgId      int       `json:"msg_id"`
-// 	SenderID   int       `json:"sender_id"`
-// 	ReceiverID int       `json:"receiver_id"`
-// 	Type       string    `json:"type"`
-// 	Content    string    `json:"content"`
-// 	CreatedAt  time.Time `json:"created_at"`
-// }
+type NewGroup struct {
+	Admin   []int  `json:"group_admin"`
+	Name    string `json:"group_name"`
+	Members []int  `json:"group_members"`
+}

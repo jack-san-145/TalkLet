@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"tet/internals/models"
 	"tet/internals/storage/postgres"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 func ServeRegister(w http.ResponseWriter, r *http.Request) {
@@ -28,9 +30,15 @@ func AccountRegisterHandler(w http.ResponseWriter, r *http.Request) {
 	user.Name = r.FormValue("username")
 	user.Mobile_no = r.FormValue("mobile_no")
 	user.Location = r.FormValue("location")
-	user.Password = r.FormValue("password")
+	pass := r.FormValue("password")
 	user.Email = r.FormValue("email")
 	received_otp := r.FormValue("otp")
+	user.Password, err = bcrypt.GenerateFromPassword([]byte(pass), 14)
+	if err != nil {
+		fmt.Println("error while generating the password - ", err)
+		return
+	}
+	fmt.Println("Bcrypt_Password - ", user.Password)
 
 	mutex.Lock()
 	sent_otp := OTPs[user.Email]

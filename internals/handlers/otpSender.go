@@ -51,11 +51,12 @@ func sendEmailTo(email string, otp string) {
 
 	from := "talkletprivatelimited@gmail.com"
 	password := os.Getenv("TALKLET_EMAIL_PASSWORD")
+	fmt.Println("password send mail - ", password)
 	msg := []byte("Subject: Your Otp for TalkLet - " + otp + "\r\n\r\nYour One time OTP is " + otp + "\r\n\r\n- TalkLet Team")
 	auth := smtp.PlainAuth("", from, password, "smtp.gmail.com")
 	err := smtp.SendMail("smtp.gmail.com:587", auth, from, []string{email}, msg)
 	if err != nil {
-		fmt.Println("Email not sent ")
+		fmt.Println("Email not sent - ", err)
 		return
 	}
 	fmt.Println("Email sent ")

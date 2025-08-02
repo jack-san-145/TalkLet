@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	_ "github.com/lib/pq"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func ValidateUser(username string, emailOrPassword string) bool {
@@ -20,15 +21,15 @@ func ValidateLogin(username string, password string) (int, bool) {
 		userId  int
 		isValid bool
 	)
-	query := "select user_id from users where user_name = $1 and password = $2"
-	err := Db.QueryRow(query, username, password).Scan(&userId)
+	query := "select user_id from users where user_name = $1"
+	err := Db.QueryRow(query, username).Scan(&userId)
 	if err == sql.ErrNoRows {
-		isValid = false
+		fmt.Println("user not found - ", err)
 	} else {
-		isValid = true
+		isValid = isPasswordMatching(userId, password)
 	}
-	fmt.Println("Login status - ", isValid)
 	return userId, isValid
+
 }
 
 func FindUser(userId int) (int, string, string, string, string, string, error) {
@@ -46,4 +47,19 @@ func FindUser(userId int) (int, string, string, string, string, string, error) {
 		return 0, "", "", "", "", "", fmt.Errorf("no user found")
 	}
 	return userId, userName, mobileNo, location, password, email, nil
+}
+
+func isPasswordMatching(userId int, password string) bool {
+	var Db_password string
+	query := "select password from users where user_id = $1"
+	err := Db.QueryRow(query, userId).Scan(&Db_password)
+	if err != nil {
+		fmt.Println("error while accessing the db password - ", err)
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(Db_password), []byte(password))
+	if err != nil {
+		return false
+	} else {
+		return true
+	}
 }

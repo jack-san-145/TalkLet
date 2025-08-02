@@ -14,7 +14,7 @@
         user_name VARCHAR(50) UNIQUE,
         mobile_no VARCHAR(10),
         location VARCHAR(40),
-        password VARCHAR(100),
+        password TEXT,
         email VARCHAR(150) UNIQUE
     );
 

@@ -322,9 +322,16 @@
               <i class="fas fa-camera"></i>
             </button>
           </div>
-          <input type="text" placeholder="Group name" class="group-name-input"/>
+          <div id="file-section">
+            <input type="text" placeholder="Group name" class="group-name-input"/>
+            <label>uplaod file to create group</label><br><br>
+            <input type="file" id="exel-sheet" accept=".xlsx"><br><br>
+            <button class="create-btn" onclick="validateFile()">Create Group</button>
+          </div>
+           <h3>Or</h3>
           <div class="group-members-selection">
             <h4>Add Participants</h4>
+         
             <ul class="members-list">
               <template x-for="contact in $store.globalVar.chatlist" :key="contact.ContactId">
                 <li class="member-item">
@@ -610,4 +617,48 @@
     offset+=limit
   }
   
+  function validateFile(){
+    const file_section=document.getElementById("file-section")
+    const element=document.createElement("h4")
+    const input_file = document.getElementById("exel-sheet")
+    const exel_sheet = input_file.files[0]
+    
+    if(!exel_sheet){
+      element.innerText="No file selected ❌"
+      file_section.append(element)
+      setTimeout(() => {
+        element.innerText=""
+      }, 5000);
+    }
+    else{ 
+      file_name=exel_sheet.name
+      console.log("exel_sheet - ",exel_sheet)
+      createGroupByExel(exel_sheet)
+    }
+
+    // const file_extension=file_name.split(".")[1]
+    // console.log(file_extension)
+    // if(file_extension=="xlsx"){
+    //   element.innerText="uploaded successfull ✅"
+    //   createGroupByExel()
+      
+    // }else{
+    //   element.innerText="upload only exel sheet ❌"
+    // }
+    // file_section.append(element)
+    // setTimeout(() => {
+    //   element.innerText=""
+    // }, 5000);
+  }
+  
+  async function createGroupByExel(exelFile){
+    const ExelForm = new FormData()
+    ExelForm.append("exel_file",exelFile)
+    const response = await fetch("/talklet/creategroup-with-exel",{
+      method : "POST",
+      body : ExelForm
+    })
+    const data = await response.json
+    console.log("response data for group creation - ",data)
+  }
 </script>

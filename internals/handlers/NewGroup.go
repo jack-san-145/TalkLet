@@ -7,8 +7,11 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"strconv"
 	"tet/internals/models"
 	"tet/internals/storage/postgres"
+
+	"github.com/xuri/excelize/v2"
 )
 
 func GroupCreation(w http.ResponseWriter, r *http.Request) {
@@ -37,23 +40,24 @@ func GroupCreation(w http.ResponseWriter, r *http.Request) {
 	postgres.NewGroupPDb(group, admin_byte)
 }
 
-func GroupCreationByExel(w http.ResponseWriter, r *http.Request) {
+func GroupCreationByExcel(w http.ResponseWriter, r *http.Request) {
 	isFound, AdminID := FindCookie(r)
 	if !isFound {
 		return
 	}
 	var (
-		file   multipart.File
-		header *multipart.FileHeader
+		file   multipart.File        // multipart is package and File is interface to do all the io operations
+		header *multipart.FileHeader //FileHeader stores the Filename , size of the file
 	)
 	err := r.ParseForm()
 	if err != nil {
 		fmt.Println("error while parsing form - ", err)
 		return
 	}
-	file, header, err = r.FormFile("exel_file")
+	//FormFile used to parse form
+	file, header, err = r.FormFile("excel_file")
 	if err != nil {
-		fmt.Println("error in the exel file - ", err)
+		fmt.Println("error in the excel file - ", err)
 		return
 	}
 	fileType := header.Header.Get("Content-Type")
@@ -65,20 +69,54 @@ func GroupCreationByExel(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("file size - ", header.Size)
 	fmt.Println("file Name - ", header.Filename)
 	fmt.Println("admin - ", AdminID)
-	SaveThisFile(&file, header)
+	SaveThisFile(&file, header) // function to save the execl file to disk
 
 }
 
 func SaveThisFile(file *multipart.File, header *multipart.FileHeader) {
-	destination, err := os.Create("../../Exel-files/" + header.Filename)
+	//it creates the empty file
+	destination, err := os.Create("../../Excel-files/" + header.Filename)
 	if err != nil {
 		fmt.Println("error while creating the destination - ", err)
 		return
 	}
 
+	//To copy the original file contents into that empty file
 	_, err = io.Copy(destination, *file)
 	if err != nil {
-		fmt.Println("error while copying exel file - ", err)
+		fmt.Println("error while copying excel file - ", err)
 		return
 	}
+	Showfilecontents(file, header)
+}
+
+func Showfilecontents(file *multipart.File, header *multipart.FileHeader) {
+	var Rows [][]string // rows is an 2D array with rows and columns
+	excel_file, err := excelize.OpenFile("../../Excel-files/" + header.Filename)
+	if err != nil {
+		fmt.Println("error while open the file - ", err)
+		return
+	}
+	fileName := excel_file.GetSheetName(0) //under the hood excel sheet are arranged as a list [0,1,2] -> 0 for "sheet1" ,...
+	//access the rows by the sheet name , here GetRows returns the 2D array like [ [c1,c2,c3] ,[c1,c2,c3], [c1,c2,c3] ]
+	Rows, err = excel_file.GetRows(fileName)
+	if err != nil {
+		fmt.Println("error while accessing the rows - ", err)
+	} else if len(Rows) == 0 {
+		fmt.Println("Empty Excel !! ")
+	} else {
+
+		for index, row := range Rows {
+			if len(row) == 0 {
+				continue
+			}
+			Sno, _ := strconv.Atoi(row[0])
+			if Sno >= 1 {
+				fmt.Printf("excel row %v - %v", index, row)
+			}
+
+		}
+	}
+	defer excel_file.Close()
+
 }

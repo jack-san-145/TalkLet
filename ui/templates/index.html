@@ -325,7 +325,7 @@
           <div id="file-section">
             <input type="text" placeholder="Group name" class="group-name-input"/>
             <label>uplaod file to create group</label><br><br>
-            <input type="file" id="exel-sheet" accept=".xlsx"><br><br>
+            <input type="file" id="excel-sheet" accept=".xlsx"><br><br>
             <button class="create-btn" onclick="validateFile()">Create Group</button>
           </div>
            <h3>Or</h3>
@@ -620,10 +620,10 @@
   function validateFile(){
     const file_section=document.getElementById("file-section")
     const element=document.createElement("h4")
-    const input_file = document.getElementById("exel-sheet")
-    const exel_sheet = input_file.files[0]
+    const input_file = document.getElementById("excel-sheet")
+    const excel_sheet = input_file.files[0]
     
-    if(!exel_sheet){
+    if(!excel_sheet){
       element.innerText="No file selected ❌"
       file_section.append(element)
       setTimeout(() => {
@@ -631,9 +631,9 @@
       }, 5000);
     }
     else{ 
-      file_name=exel_sheet.name
-      console.log("exel_sheet - ",exel_sheet)
-      createGroupByExel(exel_sheet)
+      file_name=excel_sheet.name
+      console.log("excel_sheet - ",excel_sheet)
+      createGroupByExel(excel_sheet)
     }
 
     // const file_extension=file_name.split(".")[1]
@@ -651,12 +651,12 @@
     // }, 5000);
   }
   
-  async function createGroupByExel(exelFile){
-    const ExelForm = new FormData()
-    ExelForm.append("exel_file",exelFile)
-    const response = await fetch("/talklet/creategroup-with-exel",{
+  async function createGroupByExel(excelFile){
+    const ExcelForm = new FormData()
+    ExcelForm.append("excel_file",excelFile)
+    const response = await fetch("/talklet/creategroup-with-excel",{
       method : "POST",
-      body : ExelForm
+      body : ExcelForm
     })
     const data = await response.json
     console.log("response data for group creation - ",data)

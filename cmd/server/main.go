@@ -36,7 +36,7 @@ func main() {
 	router.Get("/talklet/get-all-OTO-chatlist", handlers.OneToOneChatlist)
 
 	router.Post("/talklet/create-new-group", handlers.GroupCreation)
-	router.Post("/talklet/creategroup-with-exel", handlers.GroupCreationByExel)
+	router.Post("/talklet/creategroup-with-excel", handlers.GroupCreationByExcel)
 
 	postgres.ConnectToDb()    //connect to postgres
 	redis.CreateRedisClient() //create redis client

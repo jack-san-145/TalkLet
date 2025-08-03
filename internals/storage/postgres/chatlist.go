@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"fmt"
 	"tet/internals/models"
 	"time"
@@ -8,8 +9,12 @@ import (
 
 func LoadChatlist(userId int) []models.Chatlist {
 	var ChatLists []models.Chatlist
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel() 
+
 	query := "select receiver_id,last_msg,created_at from chatlist where sender_id = $1 and is_group = FALSE"
-	rows, err := Db.Query(query, userId)
+	rows, err := pool.Query(ctx,query, userId)
 	if err != nil {
 		fmt.Println("error while fetching chatlist from db - ", err)
 		return nil
@@ -33,8 +38,12 @@ func LoadChatlist(userId int) []models.Chatlist {
 }
 
 func AddLastMsgToChatlist(senderId int, receiverId int, content string, createdAt time.Time) {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel() 
+
 	query := "update chatlist set last_msg = $1 , created_at = $2  where ( sender_id = $3 and receiver_id =$4 ) or ( receiver_id = $3 and sender_id =$4 ) "
-	_, err := Db.Exec(query, content, createdAt, senderId, receiverId)
+	_, err := pool.Exec(ctx,query, content, createdAt, senderId, receiverId)
 	if err != nil {
 		fmt.Println("error while updating messages to chatlist - ", err)
 		return

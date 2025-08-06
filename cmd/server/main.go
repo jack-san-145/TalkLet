@@ -41,6 +41,16 @@ func main() {
 	postgres.ConnectToDb()    //connect to postgres
 	redis.CreateRedisClient() //create redis client
 
+	// postgres.AddNewDepartment("it")
+	// postgres.AddNewDepartment("aids")
+	// postgres.AddNewDepartment("eee")
+	// postgres.AddNewDepartment("mech")
+	// postgres.AddNewDepartment("mtre")
+	// postgres.AddNewDepartment("bt")
+	// postgres.AddNewDepartment("civil")
+	// postgres.AddNewDepartment("cse")
+	// postgres.AddNewDepartment("ece")
+	// postgres.DropAllTable()
 	fmt.Println("server running")
 	port := ":" + os.Getenv("PORT")
 	err = http.ListenAndServe(port, router)

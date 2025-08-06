@@ -65,3 +65,54 @@
         foreign key(user_id) references users(user_id),
         primary key(group_id,user_id)
     );
+
+
+
+
+
+
+
+
+
+
+            // new architecture
+
+7.  CREATE TABLE IF NOT EXISTS CSE_students (
+        roll_no       VARCHAR(10) PRIMARY KEY,
+        register_no   TEXT UNIQUE,
+        name          TEXT,
+        dob           DATE,
+        email         TEXT UNIQUE,
+        password      TEXT,
+        batch_year    INT,
+        passing_year  INT,
+        branch        TEXT,
+        current_year  INT,
+        section       VARCHAR(1),
+        chairperson   TEXT,
+        mentor        TEXT
+    );
+
+
+
+8. CREATE TABLE IF NOT EXISTS cse_all_groups (
+        group_id    TEXT PRIMARY KEY,
+        name        TEXT,
+        admin       JSONB,
+        created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+
+9.  CREATE TABLE IF NOT EXISTS cse_group_members (
+        group_id    TEXT NOT NULL,
+        member_id   TEXT NOT NULL,
+        group_name  TEXT,
+        isadmin     BOOLEAN,
+        PRIMARY KEY (group_id, member_id)
+        FOREIGN KEY REFERENCES cse_all_groups(group_id)
+    );
+
+
+
+
+insert into cse_students values('23UCS145','920423104133','S.Santhosh Kumar','2006-01-15','23ucs145@kamarajengg.edu.in','@san',2023,2027,'BE',3,'A','D.ASIR','S.JANANI');

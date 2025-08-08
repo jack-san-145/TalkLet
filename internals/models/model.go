@@ -19,7 +19,7 @@ type User struct {
 
 type Session struct {
 	Session_id string
-	User_id    int
+	Roll_no    string
 	Expires_at time.Time
 }
 
@@ -34,8 +34,8 @@ type Profile struct {
 
 type Message struct {
 	ID         int       `json:"msg_id"`
-	SenderID   int       `json:"sender_id"`
-	ReceiverID int       `json:"receiver_id"`
+	SenderID   string    `json:"sender_id"`
+	ReceiverID string    `json:"receiver_id"`
 	Content    string    `json:"content"`
 	CreatedAt  time.Time `json:"created_at"`
 	IsAck      string    `json:"is_ack"`
@@ -50,7 +50,7 @@ type Chatlist struct {
 }
 
 type NewGroup struct {
-	Admin   []int  `json:"group_admin"`
-	Name    string `json:"group_name"`
-	Members []int  `json:"group_members"`
+	Admin   []string `json:"group_admin"`
+	Name    string   `json:"group_name"`
+	Members []string `json:"group_members"`
 }

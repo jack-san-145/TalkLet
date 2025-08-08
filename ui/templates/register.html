@@ -125,6 +125,10 @@ async function setPassword(){
         },
         body : JSON.stringify({email:Global_Email,password:pass})
       })
+      if(response.redirected){
+        console.log(response.url)
+        window.location.href=response.url
+      }
     }
 }
 

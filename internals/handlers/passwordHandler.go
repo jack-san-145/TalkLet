@@ -29,6 +29,11 @@ func SetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println("Bcrypt_Password - ", string(bcryted_password))
-	postgres.SetPasswordDB(user_password.Email, string(bcryted_password))
+	err = postgres.SetPasswordDB(user_password.Email, string(bcryted_password))
+	fmt.Println("error - ", err)
+	if err == nil {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
 
 }

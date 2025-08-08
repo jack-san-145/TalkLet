@@ -28,14 +28,14 @@ func LoginValidationHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("error while parsing login")
 		return
 	}
-	username := r.FormValue("username")
+	roll_no := r.FormValue("roll_no")
 	password := r.FormValue("password")
-	userId, isValid := postgres.ValidateLogin(username, password)
+	roll_no, isValid := postgres.ValidateLogin(roll_no, password)
 	if !isValid {
 		w.Write([]byte("<p>Invalid username or Password ❌</p>"))
 		return
 	}
-	session := postgres.GenerateSessionID(userId)
+	session := postgres.GenerateSessionID(roll_no)
 	redis.SetSessionToRdb(session)
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_id",

@@ -34,8 +34,8 @@ func main() {
 	router.Get("/talklet/profile/{id}", handlers.ProfileHandler)
 	router.Get("/ws", websocket.UpgradeToWebsocket)
 
-	router.Get("/talklet/chat-history/{contact_id}", handlers.LoadChatMessages)
-	router.Get("/talklet/get-all-OTO-chatlist", handlers.OneToOneChatlist)
+	// router.Get("/talklet/chat-history/{contact_id}", handlers.LoadChatMessages)
+	// router.Get("/talklet/get-all-OTO-chatlist", handlers.OneToOneChatlist)
 
 	router.Post("/talklet/create-new-group", handlers.GroupCreation)
 	router.Post("/talklet/creategroup-with-excel", handlers.GroupCreationByExcel)

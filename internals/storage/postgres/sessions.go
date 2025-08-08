@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func GenerateSessionID(userId int) models.Session {
+func GenerateSessionID(roll_no string) models.Session {
 	var session models.Session
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -23,26 +23,26 @@ func GenerateSessionID(userId int) models.Session {
 
 	sessionId := uuid.New().String()
 	fmt.Println("sessionId - ", sessionId)
-	query := "insert into sessions(session_id,user_id,expires_at) values($1,$2,$3) returning * ;"
-	err := pool.QueryRow(ctx, query, sessionId, userId, time.Now().Add(3*time.Hour)).Scan(&session.Session_id, &session.User_id, &session.Expires_at)
+	query := "insert into sessions(session_id,roll_no,expires_at) values($1,$2,$3) returning * ;"
+	err := pool.QueryRow(ctx, query, sessionId, roll_no, time.Now().Add(3*time.Hour)).Scan(&session.Session_id, &session.Roll_no, &session.Expires_at)
 	if err != nil {
 		fmt.Println("session inserted failure ", err)
 	}
 	return session
 }
 
-func FindSessionPdb(session_id string) (int, models.Session) {
+func FindSessionPdb(session_id string) (string, models.Session) {
 	var session models.Session
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	query := "select * from Sessions where session_id = $1 "
-	err := pool.QueryRow(ctx, query, session_id).Scan(&session.Session_id, &session.User_id, &session.Expires_at)
+	err := pool.QueryRow(ctx, query, session_id).Scan(&session.Session_id, &session.Roll_no, &session.Expires_at)
 	if err != nil {
 		fmt.Println("error while find session_id in postgers - ", err)
 	}
-	return session.User_id, session
+	return session.Roll_no, session
 }
 
 func DeleteSession(session_id string) {

@@ -6,12 +6,12 @@ import (
 	"tet/internals/storage/postgres"
 )
 
-func FindCookie(r *http.Request) (bool, int) {
+func FindCookie(r *http.Request) (bool, string) {
 	cookie, err := r.Cookie("session_id")
 	if err == http.ErrNoCookie {
 		fmt.Println("no cookie found ")
-		return false, 0
+		return false, ""
 	}
-	userId, _ := postgres.FindSessionPdb(cookie.Value)
-	return true, userId
+	roll_no, _ := postgres.FindSessionPdb(cookie.Value)
+	return true, roll_no
 }

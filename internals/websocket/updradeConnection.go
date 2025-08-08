@@ -12,7 +12,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var ConnMap = make(map[int]*websocket.Conn)
+var ConnMap = make(map[string]*websocket.Conn)
 
 func UpgradeToWebsocket(w http.ResponseWriter, r *http.Request) {
 	CookieFound, senderID := handlers.FindCookie(r)
@@ -88,11 +88,11 @@ func UpgradeToWebsocket(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func sendAck(sender_id int, msg_sent_by_sender *models.Message, msg_type int) {
+func sendAck(sender_id string, msg_sent_by_sender *models.Message, msg_type int) {
 	msg_sent_by_sender.IsAck = "ack"
 	msg_sent_by_sender.SenderID = sender_id
 	go postgres.StoreMessagesPostDB(*msg_sent_by_sender)
-	go postgres.AddLastMsgToChatlist(sender_id, msg_sent_by_sender.ReceiverID, msg_sent_by_sender.Content, msg_sent_by_sender.CreatedAt)
+	// go postgres.AddLastMsgToChatlist(sender_id, msg_sent_by_sender.ReceiverID, msg_sent_by_sender.Content, msg_sent_by_sender.CreatedAt)
 	send_back_ack, err := json.Marshal(msg_sent_by_sender)
 	if err != nil {
 		fmt.Println("error while marshal ack - ", err)

@@ -4,6 +4,11 @@ import (
 	"time"
 )
 
+type Password struct {
+	Email string `json:"email"`
+	Pass  string `json:"password"`
+}
+
 type User struct {
 	Name      string
 	Mobile_no string

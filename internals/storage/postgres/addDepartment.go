@@ -92,3 +92,17 @@ func DropAllTable() {
 	}
 
 }
+
+func AlterTable() {
+	var query string
+	var err error
+	arr := []string{"cse", "ece", "bt", "aids", "mtre", "eee", "mech", "civil", "it"}
+	for _, table_name := range arr {
+		query = fmt.Sprintf(`alter table %s add column public_key text default null`, table_name+"_students")
+		_, err = pool.Exec(context.Background(), query)
+		if err != nil {
+			fmt.Println("error while altering the table rows by public key - ", err)
+		}
+	}
+
+}

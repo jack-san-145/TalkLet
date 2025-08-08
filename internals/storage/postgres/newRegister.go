@@ -1,15 +1,15 @@
 package postgres
 
 import (
-	"fmt"
-	"time"
 	"context"
+	"fmt"
 	"tet/internals/models"
+	"time"
 )
 
 func InsertToUsers(user models.User) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel() 
+	defer cancel()
 
 	query := "insert into users(user_name,mobile_no,location,password,email) values($1,$2,$3,$4,$5)"
 	_, err := pool.Exec(ctx, query, user.Name, user.Mobile_no, user.Location, string(user.Password), user.Email)

@@ -8,16 +8,17 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"sync"
 	"tet/internals/storage/postgres"
 	"time"
 )
 
-var OTPs = make(map[string]string)
+var OTPs = make(map[string]string) //map to store the otp's along with its email from the all the users at once
 
 var mutex sync.Mutex
 
-func SendOtpRegisterHandler(w http.ResponseWriter, r *http.Request) {
+func SendOtpHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("body - ", r.Body)
 	err := r.ParseForm()
@@ -25,7 +26,6 @@ func SendOtpRegisterHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("error while parsing form")
 		return
 	}
-	username := r.FormValue("username")
 	email := r.FormValue("email")
 	fmt.Println("email - ", email)
 	isMatch, _ := regexp.MatchString(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`, email)
@@ -33,8 +33,14 @@ func SendOtpRegisterHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("<p>Invalid Email ❌❌</p>"))
 		return
 	}
-	if postgres.ValidateUser(username, email) {
-		w.Write([]byte("<p>Account already exists ❌</p>"))
+	isGmail := strings.Split(email, "@")
+	if isGmail[1] != "kamarajengg.edu.in" {
+		w.Write([]byte("<p>Invalid Email ❌❌</p>"))
+		return
+	}
+
+	if !postgres.ValidateEmail(email) {
+		w.Write([]byte("<p>You have not registered yet ❌</p>"))
 		return
 	}
 	otp := generateOtp()
@@ -42,7 +48,7 @@ func SendOtpRegisterHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("<p>✅ Otp sent to " + email))
 
 	mutex.Lock()
-	OTPs[email] = otp
+	OTPs[email] = otp //store the otp to the map to verify later
 	mutex.Unlock()
 
 }
@@ -68,4 +74,33 @@ func generateOtp() string {
 	fmt.Println("generated otp - ", otp)
 	otp_string := strconv.Itoa(otp)
 	return otp_string
+}
+
+func VerifyOTP(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		fmt.Println("error while parsing otp form - ", err)
+		return
+	}
+	received_email := r.FormValue("email")
+	received_otp := r.FormValue("otp")
+	mutex.Lock()
+	sent_otp := OTPs[received_email]
+	mutex.Unlock()
+
+	fmt.Println("received_otp - ", received_otp)
+	fmt.Println("sent_otp - ", sent_otp)
+	var otp_response = make(map[string]bool)
+	if sent_otp != received_otp {
+		// w.Write([]byte("<p> invalid OTP ❌<p>"))
+		otp_response["otp_valid"] = false
+	} else {
+		otp_response["otp_valid"] = true
+		mutex.Lock()
+		delete(OTPs, received_email)
+		mutex.Unlock()
+	}
+	WriteJSON(w, r, otp_response)
+	// w.Header().Set("Hx-Redirect", "/")
+
 }

@@ -5,25 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Talk Let - Registration</title>
   <script src="/Static/js/htmx.min.js"></script>
-  <link rel="stylesheet" href="/Static/css/register.css" />
+  <link rel="stylesheet" href="../Static/css/register.css" />
 </head>
 <body>
-  <div class="register-container">
+   <div class="password-container">
     <h1>TalkLet Registration</h1>
-    <form hx-post="/talklet/new-register" hx-target="#sent-otp">
+    <form onsubmit="verifyOTP()">
       <div class="form-group">
-        <!-- <label for="username">Username</label> -->
-        <input type="text" name="username" id="username" placeholder="Username" required/><br></br>
-        <!-- <label for="username">Mobile</label> -->
-        <input type="text" name="mobile_no" id="mobile" pattern="[0-9]{10}" placeholder="Mobile No" required/><br></br>
-        <!-- <label for="Location">Location</label> -->
-        <input type="text" name="location" id="Location" placeholder="Location" required/><br></br>
-        <label>Set Password</label>
-        <input type="password" name="password" id="pass" placeholder="Enter Password" required/><br></br>
-        <input type="password" id="re-pass" placeholder="Re-enter Password" required/><br></br>
         <label for="Email">Email</label>
         <div class="input-with-button">
-            <input type="email" id="email" name="email"  required placeholder="Enter your email id" />
+            <input type="email" id="email" name="email"  placeholder="Enter your email id" required />
             <button
              onclick="SendOTP()"
              type="button" 
@@ -34,44 +25,109 @@
         <label for="otp">OTP</label>
         <input type="text" id="otp" name="otp" pattern="[0-9]{6}" required placeholder="Enter 6-digit OTP" />
       </div>
-      <button class="register-btn" type="submit">Register</button>
+      <button class="register-btn" type="submit">Verify</button>
     </form>
     <hr>
     <div id="sent-otp"></div>
   </div>
 </body>
 <script>
+  let Global_Email
   function SendOTP(){
-    const username=document.getElementById("username").value
+    // const username=document.getElementById("username").value
     const email=document.getElementById("email").value
-    const pass=document.getElementById("pass").value
-    const re_pass=d=document.getElementById("re-pass").value
-    console.log(email,pass,re_pass)
+    
     const sent_otp=document.getElementById("sent-otp")
     console.log("email - ",email)
-    if(pass!=re_pass)
-    {
-        sent_otp.innerHTML="<p>Password Mismatch ❌</p>"
-        return
-    }
+   
     const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
     if(!regex.test(email))
     {
+      setTimeout(()=>sent_otp.innerHTML="",2000)
      sent_otp.innerHTML="<p>Invalid Email ❌❌</p>" 
      return
     }
+
+    // ['23ucs145','kamarajengg.edu.in'] -> 'kamarajengg.edu.in'
+    if(email.split("@")[1]!="kamarajengg.edu.in"){
+      setTimeout(()=>sent_otp.innerHTML="",2000)
+      sent_otp.innerHTML="<p>Invalid Email ❌❌</p>" 
+      return
+    }
+    Global_Email=email
+    ApiCallForOTP()
     async function ApiCallForOTP(){
-      const response=await fetch("/talklet/send-otp-register",{
+      const response=await fetch("/talklet/send-otp",{
         method : "POST",
         headers : {
-          "content-Type" : "application/x-www-form-urlencoded"
+          "Content-Type" : "application/x-www-form-urlencoded"
         },
-        body: new URLSearchParams({ username:username,email: email })
+        body: new URLSearchParams({email: email })
+        // i use urlsearchparams for to get emai like this "email := r.FormValue("email")"  from backend
       })
       sent_otp.innerHTML=await response.text()
     }
-    ApiCallForOTP()
+    
   }
+async function verifyOTP(){
+  event.preventDefault();
+  console.log("✅ verifyOTP() called")
+  const email=document.getElementById("email").value
+  const entered_otp=document.getElementById('otp').value
+  const response = await fetch("/talklet/verify-otp",{
+    method : "POST",
+    headers : {
+      "Content-Type" : "application/x-www-form-urlencoded"
+    },
+    body : new URLSearchParams({email: email,otp:entered_otp})
+  })
+  const data = await response.json()
+  console.log(data)
+  console.log("data - ", data.otp_valid)
+  if(data.otp_valid){
+     const password_container=document.getElementsByClassName("password-container")[0]
+     password_container.innerHTML=`
+     <form onsubmit="setPassword()">
+      <h1>Set Password</h1>
+      <input type="password" name="password" id="pass" placeholder="Enter Password" required/><br></br>
+      <input type="password" id="re-pass" placeholder="Re-enter Password" required/><br></br>
+       <button class="set-btn" type="submit" >Set</button>
+    <form>`
+  }else{
+    const sent_otp = document.getElementById("sent-otp")
+    sent_otp.innerHTML=`<p> invalid OTP ❌<p>`
+  }
+ 
+}
+
+async function setPassword(){
+    event.preventDefault()
+    const password_container=document.getElementsByClassName("password-container")[0]
+    const pass=document.getElementById("pass").value
+    const re_pass=d=document.getElementById("re-pass").value
+    console.log(pass,re_pass)
+    if(pass!=re_pass)
+    {
+        const element= document.createElement("p")
+        element.innerHTML = "<p style='color:black;'>Password Mismatch ❌</p>";
+        password_container.append(element)
+        setTimeout(() => {
+          element.innerHTML=""
+          password_container.append(element)
+        }, 2000);
+
+    }else{
+      console.log("Global_Email - ",Global_Email)
+      const response = await fetch("/talklet/set-password",{
+        method : "POST",
+        headers : {
+          "Content-Type":"application/x-www-form-urlencoded"
+        },
+        body : JSON.stringify({email:Global_Email,password:pass})
+      })
+    }
+}
+
 </script>
 
 </html>

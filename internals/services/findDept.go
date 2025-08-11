@@ -16,3 +16,9 @@ func FindDeptStudentByRollNo(roll_no string) string {
 	dept_table := dept + "_students"
 	return dept_table
 }
+
+func FindDeptChatlistByRollno(roll_no string) string {
+	dept := fmt.Sprintf("%c"+"%c", roll_no[3], roll_no[4]) // find the specific table for that email
+	dept_table := dept + "_chatlist"
+	return dept_table
+}

@@ -24,3 +24,7 @@ func CreateRedisClient() {
 	}
 	fmt.Println("redis connection successfull", err)
 }
+
+func GiveRedisConnection() *redis.Client {
+	return rdb
+}

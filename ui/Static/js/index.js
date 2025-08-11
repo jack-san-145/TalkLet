@@ -8,14 +8,14 @@ let alpineVars
     console.log("ischat - ",alpineVars.IsChat)
     console.log("active_chat from js  - ",Alpine.store('globalVar').active_chat)
     Alpine.store('globalVar').chatlist.map((contact)=>{
-      contact.CreatedAt=convertTimeForChatList(contact.CreatedAt)
+      contact.created_at=convertTimeForChatList(contact.created_at)
     })
   })  
 
   function activeChatfunc(contact){
-    LoadOlderMessages(contact.ContactId); 
+    LoadOlderMessages(contact.contact_id); 
     alpineVars.IsChat=true; 
-    Alpine.store('globalVar').active_chat = contact.ContactId;
+    Alpine.store('globalVar').active_chat = contact.contact_id;
     alpineVars.active_user = contact;
     console.log('active chat - ',Alpine.store('globalVar').active_chat)
   }
@@ -31,10 +31,10 @@ let alpineVars
   }
 
   function addLastMsg(receiver_id,last_msg,time){
-    const contact = Alpine.store('globalVar').chatlist.find((contact => contact.ContactId == receiver_id ))
+    const contact = Alpine.store('globalVar').chatlist.find((contact => contact.contact_id == receiver_id ))
     console.log("contact for last msg - ",contact,receiver_id)
-    contact.LastMsg=last_msg
-    contact.CreatedAt=time
+    contact.last_msg=last_msg
+    contact.created_at=time
     
   }
 
@@ -207,6 +207,6 @@ function handleScroll(event){
   console.log('scroll chat - ',Alpine.store('globalVar').active_chat)
   if(el.scrollTop==0){
     console.log('reached top - ')
-    LoadOlderMessages()
+    h()
   } 
 }

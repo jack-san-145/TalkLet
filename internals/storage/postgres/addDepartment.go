@@ -6,7 +6,8 @@ import (
 )
 
 func AddNewDepartment(dept_name string) {
-	addStudentTable(dept_name)
+	// addStudentTable(dept_name)
+	createChatlist(dept_name)
 }
 
 func addStudentTable(dept_name string) {
@@ -105,4 +106,33 @@ func AlterTable() {
 		}
 	}
 
+}
+
+func createChatlist(dept_name string) {
+	table_name := dept_name + "_chatlist"
+	dept := dept_name + "_students"
+	query := fmt.Sprintf(`create table if not exists %s(
+	sender_id varchar(10),
+	receiver_id varchar(10),
+	is_group boolean default false,
+	group_id int,
+	last_msg text,
+	last_msg_id bigint,
+	first_msg_id bigint,
+	created_at timestamp default current_timestamp,
+	primary key(sender_id,receiver_id),
+	foreign key (sender_id) references %s(roll_no) on delete cascade);`, table_name, dept)
+	_, err := pool.Exec(context.Background(), query)
+	if err != nil {
+		fmt.Println("error while creating the chatlist - ", err)
+	}
+}
+
+func DropChatlistTable(dept string) {
+	table_name := dept + "_chatlist"
+	query := fmt.Sprintf(`drop table %s`, table_name)
+	_, err := pool.Exec(context.Background(), query)
+	if err != nil {
+		fmt.Println("error while drop chatlist table - ", err)
+	}
 }

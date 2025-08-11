@@ -114,5 +114,29 @@
 
 
 
+10. CREATE TABLE all_messages (
+        msg_id BIGSERIAL ,
+        sender_id VARCHAR(10),
+        receiver_id VARCHAR(10),
+        type TEXT,
+        content TEXT,
+        meta_data JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        status TEXT default 'sent' 
+    ) PARTITION BY RANGE (created_at);
+
+
+CREATE TABLE messages_2025_08
+    PARTITION OF messages
+    FOR VALUES FROM ('2025-08-01') TO ('2025-09-01');
+
+-- Add PK to this partition only
+ALTER TABLE messages_2025_08
+    ADD CONSTRAINT messages_2025_08_pkey PRIMARY KEY (msg_id);
+
+-- Add index for sender/receiver lookups in this partition
+CREATE INDEX idx_sender_receiver_2025_08
+    ON messages_2025_08 (sender_id, receiver_id);
+
 
 insert into cs_students(roll_no,register_no,name,dob,email,batch_year,passing_year,branch,current_year,section,chairperson,mentor) values('23ucs113','920423104082','MAREESWARI.R','2005-11-10','23ucs113@kamarajengg.edu.in',2023,2027,'BE',3,'A','D.ASIR','MUTHU KRISHNAN');

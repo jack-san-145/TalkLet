@@ -49,8 +49,9 @@ func UpgradeToWebsocket(w http.ResponseWriter, r *http.Request) {
 
 		//receiving message
 		msg_type, msg, err := websocketConn.ReadMessage()
-		msg_time := time.Now()
+		msg_time := time.Now().Format("2006-01-02 15:04:05")
 		received_msg_From.CreatedAt = msg_time
+		received_msg_From.SenderID = senderID
 		if err != nil {
 			fmt.Println("error while reading ws- ", err)
 			return
@@ -59,7 +60,8 @@ func UpgradeToWebsocket(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			fmt.Println("error while unmarshal - ", err)
 		}
-		sendAck(senderID, &received_msg_From, msg_type)
+
+		sendAck(&received_msg_From, msg_type)
 		fmt.Println("received message  details after ack - ", received_msg_From)
 
 		// sending the received msg
@@ -88,17 +90,24 @@ func UpgradeToWebsocket(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func sendAck(sender_id string, msg_sent_by_sender *models.Message, msg_type int) {
+func sendAck(msg_sent_by_sender *models.Message, msg_type int) {
 	msg_sent_by_sender.IsAck = "ack"
-	msg_sent_by_sender.SenderID = sender_id
-	go postgres.StoreMessagesPostDB(*msg_sent_by_sender)
+
+	// var temp models.Message
+	if msg_type == 1 { // which is websocket.TextMessage(1)
+		msg_sent_by_sender.Type = "text/plain"
+		msg_sent_by_sender.ID = postgres.StoreMessagesPostDB(*msg_sent_by_sender)
+		msg_sent_by_sender.Status = "sent"
+	}
+
 	// go postgres.AddLastMsgToChatlist(sender_id, msg_sent_by_sender.ReceiverID, msg_sent_by_sender.Content, msg_sent_by_sender.CreatedAt)
-	send_back_ack, err := json.Marshal(msg_sent_by_sender)
+	msg_sent_by_sender_byte, err := json.Marshal(msg_sent_by_sender)
 	if err != nil {
 		fmt.Println("error while marshal ack - ", err)
 		return
 	}
-	err = ConnMap[msg_sent_by_sender.SenderID].WriteMessage(msg_type, send_back_ack)
+	fmt.Printf(" ack - %+v\n ", msg_sent_by_sender)
+	err = ConnMap[msg_sent_by_sender.SenderID].WriteMessage(msg_type, msg_sent_by_sender_byte)
 	if err != nil {
 		fmt.Println("error while sending ack to sender - ", err)
 	}

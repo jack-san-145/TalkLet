@@ -33,20 +33,36 @@ type Profile struct {
 }
 
 type Message struct {
-	ID         int       `json:"msg_id"`
+	ID         int64     `json:"msg_id"`
 	SenderID   string    `json:"sender_id"`
 	ReceiverID string    `json:"receiver_id"`
-	Content    string    `json:"content"`
-	CreatedAt  time.Time `json:"created_at"`
-	IsAck      string    `json:"is_ack"`
 	Type       string    `json:"type"`
+	Content    string    `json:"content"`
+	FileURL    string    `json:"file_url"`
+	FileSize   int64     `json:"file_size"`
+	MimeType   string    `json:"mime_type"`
+	CreatedAt  string `json:"created_at"`
+	IsAck      string    `json:"is_ack"`
+	Status     string    `json:"status"`
 }
 
-type Chatlist struct {
-	ContactId   int
-	ContactName string
-	LastMsg     string
-	CreatedAt   string
+type ChatlistToSend struct {
+	UserId      string `json:"user_id"`
+	ContactId   string `json:"contact_id"`
+	ContactName string `json:"contact_name"`
+	LastMsg     string `json:"last_msg"`
+	CreatedAt   string `json:"created_at"`
+}
+
+type ChatlistForLocal struct {
+	UserID     string
+	ContactId  string
+	IsGroup    bool
+	GroupId    int32
+	LastMsg    string
+	LastMsgId  int64
+	FirstMsgId int64
+	CreatedAt  time.Time
 }
 
 type NewGroup struct {

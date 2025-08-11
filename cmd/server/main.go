@@ -35,7 +35,7 @@ func main() {
 	router.Get("/ws", websocket.UpgradeToWebsocket)
 
 	// router.Get("/talklet/chat-history/{contact_id}", handlers.LoadChatMessages)
-	// router.Get("/talklet/get-all-OTO-chatlist", handlers.OneToOneChatlist)
+	router.Get("/talklet/get-all-OTO-chatlist", handlers.OneToOneChatlist)
 
 	router.Post("/talklet/create-new-group", handlers.GroupCreation)
 	router.Post("/talklet/creategroup-with-excel", handlers.GroupCreationByExcel)
@@ -45,6 +45,14 @@ func main() {
 
 	// cs,ad,bt,ec,it,me,mt
 	// postgres.DropAllTable()
+	// postgres.DropChatlistTable("cs")
+	// postgres.DropChatlistTable("ad")
+	// postgres.DropChatlistTable("bt")
+	// postgres.DropChatlistTable("ec")
+	// postgres.DropChatlistTable("me")
+	// postgres.DropChatlistTable("mt")
+	// postgres.DropChatlistTable("it")
+
 	// go postgres.AddNewDepartment("cs")
 	// go postgres.AddNewDepartment("ad")
 	// go postgres.AddNewDepartment("bt")
@@ -52,6 +60,7 @@ func main() {
 	// go postgres.AddNewDepartment("me")
 	// go postgres.AddNewDepartment("mt")
 	// go postgres.AddNewDepartment("it")
+
 	// go postgres.AddNewDepartment("civil")
 	// go postgres.AddNewDepartment("eee")
 

@@ -45,3 +45,7 @@ func ConnectToDb() {
 	}
 	fmt.Println("database connected successfully")
 }
+
+func GivePostgresConnection() *pgxpool.Pool {
+	return pool
+}

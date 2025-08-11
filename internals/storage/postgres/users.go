@@ -58,24 +58,21 @@ func ValidateLogin(roll_no string, password string) (string, bool) {
 
 }
 
-func FindUser(userId int) (int, string, string, string, string, string, error) {
+func FindUser(userId string) (string, string, string, error) {
 	var (
-		userName string
-		mobileNo string
-		location string
+		name     string
 		password string
 		email    string
 	)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+	dept_table := services.FindDeptStudentByRollNo(userId)
 
-	query := "select * from users where user_id = $1 "
-	err := pool.QueryRow(ctx, query, userId).Scan(&userId, &userName, &mobileNo, &location, &password, &email)
+	query := fmt.Sprintf(`select name,email,password from %s where roll_no = $1`, dept_table)
+	err := pool.QueryRow(context.Background(), query, userId).Scan(&name, &email, &password)
 	if err == sql.ErrNoRows {
 		fmt.Println("invalid user id - ", err)
-		return 0, "", "", "", "", "", fmt.Errorf("no user found")
+		return "", "", "", fmt.Errorf("no user found")
 	}
-	return userId, userName, mobileNo, location, password, email, nil
+	return name, email, password, nil
 }
 
 func isPasswordMatching(roll_no string, password string, dept_table string) bool {

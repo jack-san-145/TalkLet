@@ -14,7 +14,7 @@ require (
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/lib/pq v1.10.9 // indirect
-	github.com/redis/go-redis/v9 v9.10.0 // indirect
+	github.com/redis/go-redis/v9 v9.12.1 // indirect
 	github.com/richardlehane/mscfb v1.0.4 // indirect
 	github.com/richardlehane/msoleps v1.0.4 // indirect
 	github.com/tiendc/go-deepcopy v1.6.0 // indirect

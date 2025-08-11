@@ -1,23 +1,22 @@
 package handlers
 
 import (
-// "fmt"
-// "net/http"
-// "strconv"
-// "tet/internals/storage/postgres"
-
-// "github.com/go-chi/chi/v5"
+	"fmt"
+	"net/http"
+	// "strconv"
+	"tet/internals/storage/postgres"
+	// "github.com/go-chi/chi/v5"
 )
 
-// func OneToOneChatlist(w http.ResponseWriter, r *http.Request) {
-// 	isFound, userId := FindCookie(r)
-// 	if !isFound {
-// 		return
-// 	}
-// 	Chatlist := postgres.LoadChatlist(userId)
-// 	fmt.Println(Chatlist)
-// 	WriteJSON(w, r, Chatlist)
-// }
+func OneToOneChatlist(w http.ResponseWriter, r *http.Request) {
+	isFound, userId := FindCookie(r)
+	if !isFound {
+		return
+	}
+	Chatlist := postgres.LoadChatlist(userId)
+	fmt.Println(Chatlist)
+	WriteJSON(w, r, Chatlist)
+}
 
 // func LoadChatMessages(w http.ResponseWriter, r *http.Request) {
 // 	isFound, userId := FindCookie(r)

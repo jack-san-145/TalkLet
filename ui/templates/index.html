@@ -132,17 +132,17 @@
               <template x-for="(contact, index) in $store.globalVar.chatlist.filter(c => 
                 searchQuery === '' || 
                 c.ContactName.toLowerCase().includes(searchQuery.toLowerCase()))" 
-                :key="contact.ContactId">
-                <li :id="contact.ContactId " 
-                    :class="$store.globalVar.active_chat == contact.ContactId ? 'chat-item active' : 'chat-item'"
+                :key="contact.contact_id">
+                <li :id="contact.contact_id " 
+                    :class="$store.globalVar.active_chat == contact.contact_id ? 'chat-item active' : 'chat-item'"
                     @click="activeChatfunc(contact)">
                   <div class="avatar-container">
-                    <img :src="'https://i.pravatar.cc/40?u=' + contact.ContactId" alt="Profile"/>
+                    <img :src="'https://hellogiggles.com/wp-content/uploads/sites/7/2016/03/09/picture-of-tangled-rapunzel-photo.jpg?quality=82&strip=all' + contact.ContactId" alt="Profile"/>
                     <div class="status-indicator" :class="contact.online ? 'online' : 'offline'"></div>
                   </div>
                   <div class="chat-info">
                     <div class="chat-info-top">
-                      <h4 x-text="contact.ContactName">hello world</h4>
+                      <h4 x-text="contact.contact_name">hello world</h4>
                       <span class="time" x-text="contact.LastMsgTime"></span>
                     </div>
                     <div class="chat-info-bottom">
@@ -333,12 +333,12 @@
             <h4>Add Participants</h4>
          
             <ul class="members-list">
-              <template x-for="contact in $store.globalVar.chatlist" :key="contact.ContactId">
+              <template x-for="contact in $store.globalVar.chatlist" :key="contact.contact_id">
                 <li class="member-item">
                   <div class="member-avatar">
-                    <img :src="'https://i.pravatar.cc/40?u=' + contact.ContactId" alt="Profile"/>
+                    <img :src="'https://i.pravatar.cc/40?u=' + contact.contact_id" alt="Profile"/>
                   </div>
-                  <span x-text="contact.ContactName"></span>
+                  <span x-text="contact.contact_name"></span>
                   <input type="checkbox" class="member-checkbox"/>
                 </li>
               </template>
@@ -360,11 +360,11 @@
                 <i class="fas fa-arrow-left"></i>
               </button>
               <div class="avatar-container" @click="viewUserProfile(active_user)">
-                <img :src="'https://i.pravatar.cc/40?u=' + active_user.ContactId" alt="Profile"/>
+                <img :src="'https://i.pravatar.cc/40?u=' + active_user.contact_id" alt="Profile"/>
                 <div class="status-indicator" :class="active_user.online ? 'online' : 'offline'"></div>
               </div>
               <div class="chat-user-info" @click="viewUserProfile(active_user)">
-                <h3 x-text="active_user.ContactName"></h3>
+                <h3 x-text="active_user.contact_name"></h3>
                 <p x-text="typing ? 'typing...' : (active_user.online ? 'online' : 'last seen ' + active_user.lastSeen)"></p>
               </div>
             </div>
@@ -386,10 +386,10 @@
                   <button>
                     <i class="fas fa-bell-slash"></i> Mute Notifications
                   </button>
-                  <button @click="clearChat(active_user.ContactId)">
+                  <button @click="clearChat(active_user.contact_id)">
                     <i class="fas fa-trash"></i> Clear Chat
                   </button>
-                  <button @click="deleteChat(active_user.ContactId)">
+                  <button @click="deleteChat(active_user.contact_id)">
                     <i class="fas fa-user-times"></i> Delete Contact
                   </button>
                   <button @click="isDarkMode = !isDarkMode">
@@ -427,7 +427,7 @@
           <!-- Reply preview -->
           <template x-if="replyingTo && replyingTo.id === message.id">
             <div class="reply-preview">
-              <div class="reply-sender" x-text="message.sender === 'me' ? 'You' : active_user.ContactName"></div>
+              <div class="reply-sender" x-text="message.sender === 'me' ? 'You' : active_user.contact_name"></div>
               <div class="reply-content">
                 <template x-if="message.type === 'text'">
                   <span x-text="message.content"></span>

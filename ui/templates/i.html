@@ -130,7 +130,7 @@
   function addLastMsg(receiver_id,last_msg,time){
     const contact = alpineVars.chatlist.find((contact => contact.ContactId == receiver_id ))
     console.log("contact for last msg - ",contact,receiver_id)
-    contact.LastMsg=last_msg
+    contact.Msg=last_msg
     contact.CreatedAt=time
     
   }

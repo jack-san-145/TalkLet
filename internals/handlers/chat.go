@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"fmt"
+	"github.com/go-chi/chi/v5"
 	"net/http"
-	// "strconv"
+	"strconv"
 	"tet/internals/storage/postgres"
-	// "github.com/go-chi/chi/v5"
 )
 
 func OneToOneChatlist(w http.ResponseWriter, r *http.Request) {
@@ -18,24 +18,24 @@ func OneToOneChatlist(w http.ResponseWriter, r *http.Request) {
 	WriteJSON(w, r, Chatlist)
 }
 
-// func LoadChatMessages(w http.ResponseWriter, r *http.Request) {
-// 	isFound, userId := FindCookie(r)
-// 	if !isFound {
-// 		return
-// 	}
-// 	contactID := chi.URLParam(r, "contact_id")
-// 	limit := r.URL.Query().Get("limit")
-// 	offset := r.URL.Query().Get("offset")
+func LoadChatMessages(w http.ResponseWriter, r *http.Request) {
+	isFound, userId := FindCookie(r)
+	if !isFound {
+		return
+	}
+	// query paramater = /talklet/chat-history/${contact_id}?limit=${limit}&offset=${offset}
+	contactID := chi.URLParam(r, "contact_id")
+	limit := r.URL.Query().Get("limit") // to get the limit value from the request
+	offset := r.URL.Query().Get("offset")
 
-// 	contactID_int, _ := strconv.Atoi(contactID)
-// 	limit_int, _ := strconv.Atoi(limit)
-// 	offset_int, _ := strconv.Atoi(offset)
-// 	fmt.Println("contactID - ", contactID_int)
-// 	AllMessages, err := postgres.LoadChatMessagesPDb(userId, contactID_int, limit_int, offset_int)
-// 	if err != nil {
-// 		WriteJSON(w, r, "the chat is empty")
-// 		return
-// 	}
-// 	WriteJSON(w, r, AllMessages)
+	limit_int, _ := strconv.Atoi(limit)
+	offset_int, _ := strconv.Atoi(offset)
+	fmt.Println("contactID - ", contactID) //means the receiver's roll no
+	AllMessages, err := postgres.LoadOTOChatMessagesPDb(userId, contactID, limit_int, offset_int)
+	if err != nil {
+		WriteJSON(w, r, "the chat is empty")
+		return
+	}
+	WriteJSON(w, r, AllMessages)
 
-// }
+}

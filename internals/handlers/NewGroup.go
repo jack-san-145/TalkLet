@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 	"tet/internals/models"
+	"tet/internals/services"
 	"tet/internals/storage/postgres"
 
 	"github.com/xuri/excelize/v2"
@@ -70,6 +71,7 @@ func GroupCreationByExcel(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("file Name - ", header.Filename)
 	fmt.Println("admin - ", AdminID)
 	SaveThisFile(&file, header) // function to save the execl file to disk
+	StartCreateGroup(AdminID, "", &file, header)
 
 }
 
@@ -87,7 +89,6 @@ func SaveThisFile(file *multipart.File, header *multipart.FileHeader) {
 		fmt.Println("error while copying excel file - ", err)
 		return
 	}
-	Showfilecontents(file, header)
 }
 
 func Showfilecontents(file *multipart.File, header *multipart.FileHeader) {
@@ -100,6 +101,7 @@ func Showfilecontents(file *multipart.File, header *multipart.FileHeader) {
 	fileName := excel_file.GetSheetName(0) //under the hood excel sheet are arranged as a list [0,1,2] -> 0 for "sheet1" ,...
 	//access the rows by the sheet name , here GetRows returns the 2D array like [ [c1,c2,c3] ,[c1,c2,c3], [c1,c2,c3] ]
 	Rows, err = excel_file.GetRows(fileName)
+	fmt.Println("Rows - ", Rows)
 	if err != nil {
 		fmt.Println("error while accessing the rows - ", err)
 	} else if len(Rows) == 0 {
@@ -107,6 +109,7 @@ func Showfilecontents(file *multipart.File, header *multipart.FileHeader) {
 	} else {
 
 		for index, row := range Rows {
+			fmt.Println("each row - ", row)
 			if len(row) == 0 {
 				continue
 			}
@@ -118,5 +121,68 @@ func Showfilecontents(file *multipart.File, header *multipart.FileHeader) {
 		}
 	}
 	defer excel_file.Close()
+
+}
+
+func StartCreateGroup(admin string, group_name string, file *multipart.File, header *multipart.FileHeader) {
+	var Rows [][]string
+	var (
+		Department string
+		UploadedBy string
+	)
+	var new_Student models.StudentDetails
+	excel_file, err := excelize.OpenFile("../../Excel-files/" + header.Filename)
+	if err != nil {
+		fmt.Printf("error while opening the file '%v' - %v", header.Filename, err)
+		return
+	}
+	sheet_name := excel_file.GetSheetName(0)
+	Rows, err = excel_file.GetRows(sheet_name)
+	if err != nil {
+		fmt.Println("error while accessing the rows in the excel - ", err)
+		return
+	}
+	isKcetTalklet := Rows[0][0]
+	if isKcetTalklet != "KCET-TALKLET" {
+		fmt.Println("Invalid file to create group")
+		return
+	}
+	fmt.Println("rows - ", Rows)
+	fmt.Println("before branch .. ", Rows[2][1])
+	new_Student.Branch = Rows[2][1]
+	dept := Rows[3][1]
+	class := Rows[4][1]
+	batch := Rows[5][1]
+	new_Student.Chairperson = Rows[6][1]
+	UploadedBy = Rows[7][1]
+	Department = services.FindDeptByDept(dept)
+	new_Student.Current_year, new_Student.Section = services.Find_Year_And_Section(class)
+	new_Student.Batch_year, new_Student.Passing_year = services.FindBatch(batch)
+	for index, row := range Rows {
+		if len(row) == 0 {
+			continue
+		}
+		if index >= 10 {
+			fmt.Println("")
+			new_Student.Register_no = row[1]
+			new_Student.Roll_no = row[2]
+			new_Student.Name = row[3]
+			new_Student.DOB = row[4]
+			new_Student.Email = row[5]
+			new_Student.Mentor = row[6]
+			fmt.Println("register_no - ", new_Student.Register_no)
+			fmt.Println("roll_no - ", new_Student.Roll_no)
+			fmt.Println("name - ", new_Student.Name)
+			fmt.Println("dob - ", new_Student.DOB)
+			fmt.Println("email - ", new_Student.Email)
+			fmt.Println("mentor - ", new_Student.Mentor)
+			fmt.Println("branch - ", new_Student.Branch)
+			fmt.Println("Department - ", Department)
+			fmt.Printf("class - %v-%v ", new_Student.Current_year, new_Student.Section)
+			fmt.Printf("batch year - %v\npassing year - %v\nchairperson - %v\nuploadedby - %v", new_Student.Batch_year, new_Student.Passing_year, new_Student.Chairperson, UploadedBy)
+			fmt.Println("")
+		}
+
+	}
 
 }

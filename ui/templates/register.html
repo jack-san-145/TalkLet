@@ -57,7 +57,7 @@
     Global_Email=email
     ApiCallForOTP()
     async function ApiCallForOTP(){
-      const response=await fetch("/talklet/send-otp",{
+      const response=await fetch("/talklet/send-otp-student",{
         method : "POST",
         headers : {
           "Content-Type" : "application/x-www-form-urlencoded"
@@ -74,7 +74,7 @@ async function verifyOTP(){
   console.log("✅ verifyOTP() called")
   const email=document.getElementById("email").value
   const entered_otp=document.getElementById('otp').value
-  const response = await fetch("/talklet/verify-otp",{
+  const response = await fetch("/talklet/verify-otp-student",{
     method : "POST",
     headers : {
       "Content-Type" : "application/x-www-form-urlencoded"

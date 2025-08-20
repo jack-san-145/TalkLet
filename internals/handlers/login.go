@@ -22,7 +22,7 @@ func ServeLogin(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func LoginValidationHandler(w http.ResponseWriter, r *http.Request) {
+func StudentLoginValidationHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		fmt.Println("error while parsing login")
@@ -30,12 +30,32 @@ func LoginValidationHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	roll_no := r.FormValue("roll_no")
 	password := r.FormValue("password")
-	roll_no, isValid := postgres.ValidateLogin(roll_no, password)
+	roll_no, isValid := postgres.ValidateStudentLogin(roll_no, password)
 	if !isValid {
 		w.Write([]byte("<p>Invalid username or Password ❌</p>"))
 		return
 	}
-	session := postgres.GenerateSessionID(roll_no)
+	createSession(roll_no, w)
+}
+
+func StaffLoginValidationHandler(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		fmt.Println("error while parsing login")
+		return
+	}
+	staff_id := r.FormValue("staff_id")
+	password := r.FormValue("password")
+	staff_id, isValid := postgres.ValidateStaffLogin(staff_id, password)
+	if !isValid {
+		w.Write([]byte("<p>Invalid username or Password ❌</p>"))
+		return
+	}
+	createSession(staff_id, w)
+}
+
+func createSession(id string, w http.ResponseWriter) {
+	session := postgres.GenerateSessionID(id)
 	redis.SetSessionToRdb(session)
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_id",

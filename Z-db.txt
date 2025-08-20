@@ -94,7 +94,6 @@
     );
 
 
-
 8. CREATE TABLE IF NOT EXISTS cs_all_groups (
         group_id    TEXT PRIMARY KEY,
         name        TEXT,

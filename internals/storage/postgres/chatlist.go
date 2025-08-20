@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"tet/internals/models"
 	"tet/internals/services"
+	"time"
 )
 
 // "context"
@@ -23,12 +24,19 @@ func LoadChatlist(userId string) []models.ChatlistToSend {
 		return nil
 	}
 	for rows.Next() {
+		var created_at_time time.Time
 		var chat_list models.ChatlistToSend
-		rows.Scan(
+		err := rows.Scan(
 			&chat_list.ContactId,
 			&chat_list.LastMsg,
-			&chat_list.CreatedAt,
+			&created_at_time,
 		)
+		fmt.Println("created_at_time - ", created_at_time)
+
+		chat_list.CreatedAt = created_at_time.Format("2006-01-02 15:04:05")
+		if err != nil {
+			fmt.Println("error while scanning the chatlist - ", err)
+		}
 		chat_list.ContactName, _, _, err = FindUser(chat_list.ContactId)
 		if err != nil {
 			fmt.Print("error - ", err.Error())
@@ -40,18 +48,30 @@ func LoadChatlist(userId string) []models.ChatlistToSend {
 	return ChatLists
 }
 
-// func AddLastMsgToChatlist(senderId int, receiverId int, content string, createdAt time.Time) {
+func AddLastMsgToChatlist(senderId string, receiverId string, last_msg_id int64, content string, createdAt string) {
 
-// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-// 	defer cancel()
+	sender_dept := services.FindDeptChatlistByRollno(senderId)
+	receiver_dept := services.FindDeptChatlistByRollno(receiverId)
 
-// 	query := "update chatlist set last_msg = $1 , created_at = $2  where ( sender_id = $3 and receiver_id =$4 ) or ( receiver_id = $3 and sender_id =$4 ) "
-// 	_, err := pool.Exec(ctx,query, content, createdAt, senderId, receiverId)
-// 	if err != nil {
-// 		fmt.Println("error while updating messages to chatlist - ", err)
-// 		return
-// 	}
-// }
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	//to add last msg to the sender
+	query := fmt.Sprintf(`update %v set last_msg_id = $1 ,last_msg = $2 , created_at = $3  where sender_id = $4 and receiver_id =$5 `, sender_dept)
+	_, err := pool.Exec(ctx, query, last_msg_id, content, createdAt, senderId, receiverId)
+	if err != nil {
+		fmt.Println("error while updating messages to sender's chatlist - ", err)
+		return
+	}
+
+	//to add last msg to the receiver
+	query = fmt.Sprintf(`update %v set last_msg_id = $1,last_msg = $2 , created_at = $3  where sender_id = $4 and receiver_id =$5 `, receiver_dept)
+	_, err = pool.Exec(ctx, query, last_msg_id, content, createdAt, receiverId, senderId)
+	if err != nil {
+		fmt.Println("error while updating messages to receiver's chatlist - ", err)
+		return
+	}
+}
 
 func AddTochatlist(newContact models.ChatlistForLocal, isGroup bool) {
 
@@ -60,6 +80,16 @@ func AddTochatlist(newContact models.ChatlistForLocal, isGroup bool) {
 	pool.Exec(context.Background(), query,
 		newContact.UserID,
 		newContact.ContactId,
+		newContact.IsGroup,
+		newContact.GroupId,
+		newContact.LastMsg,
+		newContact.LastMsgId,
+		newContact.FirstMsgId)
+
+	query = fmt.Sprintf(`insert into %s(sender_id,receiver_id,is_group,group_id,last_msg,last_msg_id,first_msg_id) values($1,$2,$3,$4,$5,$6,$7)`, dept_table)
+	pool.Exec(context.Background(), query,
+		newContact.ContactId,
+		newContact.UserID,
 		newContact.IsGroup,
 		newContact.GroupId,
 		newContact.LastMsg,

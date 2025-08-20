@@ -10,6 +10,7 @@ import (
 	"tet/internals/websocket"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 )
 
@@ -21,20 +22,43 @@ func main() {
 	}
 
 	router := chi.NewRouter()
+
+	router.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"*"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}))
+
+	// 	router.Use(cors.Handler(cors.Options{
+	//     AllowedOrigins:   []string{"http://localhost:3000", "http://127.0.0.1:3000"},
+	//     AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+	//     AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+	//     ExposedHeaders:   []string{"Link"},
+	//     AllowCredentials: true,
+	//     MaxAge:           300,
+	// }))
+
 	router.Mount("/Static/", http.StripPrefix("/Static/", http.FileServer(http.Dir("../../ui/Static"))))
 	router.Post("/update", handlers.UpdateHandler)
 	router.Get("/", handlers.ServeLogin)
-	router.Post("/talklet/send-otp", handlers.SendOtpHandler)
-	router.Post("/talklet/verify-otp", handlers.VerifyOTP)
+	router.Post("/talklet/send-otp-student", handlers.SendOtpHandler_for_students)
+	router.Post("/talklet/send-otp-staff", handlers.SendOtpHandler_for_staffs)
+	router.Post("/talklet/verify-otp-student", handlers.VerifyOTP_for_student_handler)
+	router.Post("/talklet/verify-otp-staff", handlers.VerifyOTP_for_staff_handler)
 	router.Post("/talklet/set-password", handlers.SetPassword)
 	router.Get("/talklet/serve-register", handlers.ServeRegister)
 	router.Post("/talklet/new-register", handlers.AccountRegisterHandler)
-	router.Post("/talklet/validate-login", handlers.LoginValidationHandler)
+	router.Post("/talklet/validate-login", handlers.StudentLoginValidationHandler)
 	router.Get("/talklet/serve-index", handlers.ServeIndex)
 	router.Get("/talklet/profile/{id}", handlers.ProfileHandler)
 	router.Get("/ws", websocket.UpgradeToWebsocket)
 
-	// router.Get("/talklet/chat-history/{contact_id}", handlers.LoadChatMessages)
+	router.Post("/talklet/register-new-staff", handlers.StaffRegistration)
+
+	router.Get("/talklet/chat-history/{contact_id}", handlers.LoadChatMessages)
 	router.Get("/talklet/get-all-OTO-chatlist", handlers.OneToOneChatlist)
 
 	router.Post("/talklet/create-new-group", handlers.GroupCreation)

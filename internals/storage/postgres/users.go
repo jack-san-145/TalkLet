@@ -24,10 +24,8 @@ func ValidateUser(username string, emailOrPassword string) bool {
 	return isValid
 }
 
-func ValidateEmail(email string) bool {
+func ValidateEmail(email string, dept_table string) bool {
 	var isValid bool
-
-	dept_table := services.FindDeptStudentByEmail(email)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -38,24 +36,24 @@ func ValidateEmail(email string) bool {
 	return isValid
 }
 
-func ValidateLogin(roll_no string, password string) (string, bool) {
+func ValidateStudentLogin(roll_no string, password string) (string, bool) {
 	var (
 		isValid bool
 	)
-	// ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	// defer cancel()
-
-	// query := "select user_id from users where user_name = $1"
-	// err := pool.QueryRow(ctx, query, roll_no).Scan(&userId)
-	// if err == sql.ErrNoRows {
-	// 	fmt.Println("user not found - ", err)
-	// } else {
-	// 	isValid = isPasswordMatching(userId, password)
 	dept_table := services.FindDeptStudentByRollNo(roll_no)
-	// }
-	isValid = isPasswordMatching(roll_no, password, dept_table)
+	column_name := "roll_no"
+	isValid = isPasswordMatching(roll_no, password, dept_table, column_name)
 	return roll_no, isValid
+}
 
+func ValidateStaffLogin(staff_id string, password string) (string, bool) {
+	var (
+		isValid bool
+	)
+	dept_table := "all_staffs"
+	column_name := "staff_id"
+	isValid = isPasswordMatching(staff_id, password, dept_table, column_name)
+	return staff_id, isValid
 }
 
 func FindUser(userId string) (string, string, string, error) {
@@ -75,13 +73,13 @@ func FindUser(userId string) (string, string, string, error) {
 	return name, email, password, nil
 }
 
-func isPasswordMatching(roll_no string, password string, dept_table string) bool {
+func isPasswordMatching(roll_no string, password string, dept_table string, column_name string) bool {
 	var Db_password string
 	fmt.Println("your password - ", password)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	query := fmt.Sprintf(`select password from %s where roll_no = $1`, dept_table)
+	query := fmt.Sprintf(`select password from %s where %s = $1`, dept_table, column_name)
 	err := pool.QueryRow(ctx, query, roll_no).Scan(&Db_password)
 	if err == pgx.ErrNoRows {
 		fmt.Println("no roll_no found - ")

@@ -65,9 +65,11 @@ func UpgradeToWebsocket(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("received message  details after ack - ", received_msg_From)
 
 		// sending the received msg
+		Send_msg_To.ID = received_msg_From.ID
 		Send_msg_To.SenderID = senderID
 		Send_msg_To.ReceiverID = received_msg_From.ReceiverID
 		Send_msg_To.Content = received_msg_From.Content
+		Send_msg_To.Type = received_msg_From.Type
 		Send_msg_To.CreatedAt = msg_time
 		sendMsgTo(&Send_msg_To, msg_type) //send to frd
 
@@ -100,7 +102,7 @@ func sendAck(msg_sent_by_sender *models.Message, msg_type int) {
 		msg_sent_by_sender.Status = "sent"
 	}
 
-	// go postgres.AddLastMsgToChatlist(sender_id, msg_sent_by_sender.ReceiverID, msg_sent_by_sender.Content, msg_sent_by_sender.CreatedAt)
+	go postgres.AddLastMsgToChatlist(msg_sent_by_sender.SenderID, msg_sent_by_sender.ReceiverID, msg_sent_by_sender.ID, msg_sent_by_sender.Content, msg_sent_by_sender.CreatedAt)
 	msg_sent_by_sender_byte, err := json.Marshal(msg_sent_by_sender)
 	if err != nil {
 		fmt.Println("error while marshal ack - ", err)
@@ -121,7 +123,7 @@ func sendMsgTo(msg_send_to_frd *models.Message, msg_type int) {
 		fmt.Println("error while marshal sending_msg_byte - ", sending_msg_byte)
 		return
 	}
-	fmt.Println("msg_send_to_frd", msg_send_to_frd)
+	fmt.Println("msg_send_to_frd - ", msg_send_to_frd)
 	receiver_id, ok := ConnMap[msg_send_to_frd.ReceiverID]
 	if !ok {
 		fmt.Printf("%v goes to offline - ", msg_send_to_frd.ReceiverID)

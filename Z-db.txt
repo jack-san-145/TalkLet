@@ -139,15 +139,12 @@ CREATE INDEX idx_sender_receiver_2025_08
     ON messages_2025_08 (sender_id, receiver_id);
 
 
-insert into cs_students(roll_no,register_no,name,dob,email,batch_year,passing_year,branch,current_year,section,chairperson,mentor) values('23ucs113','920423104082','MAREESWARI.R','2005-11-10','23ucs113@kamarajengg.edu.in',2023,2027,'BE',3,'A','D.ASIR','MUTHU KRISHNAN');
 
-
-
-
-talklet=# select * from cs_students;
-
- roll_no  |  register_no  |       name       |    dob     |            email            |                           password                           | batch_year | passing_year | branch | current_year | section | chairperson |     mentor      
-----------+---------------+------------------+------------+-----------------------------+--------------------------------------------------------------+------------+--------------+--------+--------------+---------+-------------+-----------------
- 23ucs122 | 920423104112  | RAMALINGAM G     | 2005-10-03 | 23ucs122@kamarajengg.edu.in | $2a$14$/XKJ/z8Vm6wuWtoqPdIdOeZeblH7kxGJt7hk96YlRFbHtnwd7HIoG |       2023 |         2027 | BE     |            3 | A       | D.ASIR      | KUMARAVEL
- 23ucs099 | 9204231040128 | SANJAI VINAYAGAM | 2005-10-03 | 23ucs099@kamarajengg.edu.in | $2a$14$vJ6Xg.qVvnwHwHFPled9AO6VJGqOu3et.5YVNtMIA/4HtzTcsFK4. |       2023 |         2027 | BE     |            3 | A       | D.ASIR      | PRAVEEN KUMAR G
- 23ucs145 | 920423104133  | S.Santhosh Kumar | 2006-01-15 | 23ucs145@kamarajengg.edu.in | $2a$14$8.qWwC5UqiZ837XvZGWqgucbpChSRxGYYKF3Rl0EMZJlyI5gUhDWq |       2023 |         2027 | BE     |            3 | A       | D.ASIR      | S.JANANI
+11. CREATE TABLE all_staffs (
+        staff_id TEXT PRIMARY KEY,
+        name TEXT,
+        dob DATE,
+        email TEXT UNIQUE,
+        password TEXT,
+        dept TEXT
+    );

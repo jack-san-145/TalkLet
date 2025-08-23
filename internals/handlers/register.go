@@ -7,6 +7,7 @@ import (
 	"tet/internals/models"
 	"tet/internals/services"
 	"tet/internals/storage/postgres"
+	"tet/internals/storage/redis"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -41,15 +42,15 @@ func AccountRegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println("Bcrypt_Password - ", user.Password)
 
-	mutex.Lock()
-	sent_otp := OTPs[user.Email]
-	delete(OTPs, user.Email)
-	mutex.Unlock()
+	sent_otp, err := redis.Get_OTP_from_redis(user.Email)
+	if err != nil {
+		w.Write([]byte("<p>OTP invalid ❌<p>"))
+		return
+	}
 
-	fmt.Println("received_otp - ", received_otp)
-	fmt.Println("sent_otp - ", sent_otp)
 	if sent_otp != received_otp {
 		w.Write([]byte("<p>OTP invalid ❌<p>"))
+		return
 	}
 	fmt.Println(user)
 	postgres.InsertToUsers(user)
@@ -102,7 +103,4 @@ func StaffRegistration(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("new staff - %+v", new_staff)
 	postgres.NewStaffRegisterPDB(new_staff)
-	mutex.Lock()
-	delete(OTPs, new_staff.Email)
-	mutex.Unlock()
 }

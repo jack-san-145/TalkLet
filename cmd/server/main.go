@@ -51,7 +51,8 @@ func main() {
 	router.Post("/talklet/set-password", handlers.SetPassword)
 	router.Get("/talklet/serve-register", handlers.ServeRegister)
 	router.Post("/talklet/new-register", handlers.AccountRegisterHandler)
-	router.Post("/talklet/validate-login", handlers.StudentLoginValidationHandler)
+	router.Post("/talklet/validate-student-login", handlers.StudentLoginValidationHandler)
+	router.Post("/talklet/validate-staff-login", handlers.StaffLoginValidationHandler)
 	router.Get("/talklet/serve-index", handlers.ServeIndex)
 	router.Get("/talklet/profile/{id}", handlers.ProfileHandler)
 	router.Get("/ws", websocket.UpgradeToWebsocket)
@@ -68,7 +69,7 @@ func main() {
 	redis.CreateRedisClient() //create redis client
 
 	// cs,ad,bt,ec,it,me,mt
-	// postgres.DropAllTable()
+
 	// postgres.DropChatlistTable("cs")
 	// postgres.DropChatlistTable("ad")
 	// postgres.DropChatlistTable("bt")
@@ -76,6 +77,8 @@ func main() {
 	// postgres.DropChatlistTable("me")
 	// postgres.DropChatlistTable("mt")
 	// postgres.DropChatlistTable("it")
+
+	// postgres.DropAllTable()
 
 	// go postgres.AddNewDepartment("cs")
 	// go postgres.AddNewDepartment("ad")

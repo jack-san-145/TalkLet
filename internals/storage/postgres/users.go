@@ -12,19 +12,20 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func ValidateUser(username string, emailOrPassword string) bool {
-	var isValid bool
+// func ValidateUser(username string, emailOrPassword string) bool {
+// 	var isValid bool
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
 
-	query := "select exists(select 1 from users where user_name = $1 or email = $2)"
-	pool.QueryRow(ctx, query, username, emailOrPassword).Scan(&isValid)
-	fmt.Println("isvalid - ", isValid)
-	return isValid
-}
+// 	query := "select exists(select 1 from users where user_name = $1 or email = $2)"
+// 	pool.QueryRow(ctx, query, username, emailOrPassword).Scan(&isValid)
+// 	fmt.Println("isvalid - ", isValid)
+// 	return isValid
+// }
 
 func ValidateEmail(email string, dept_table string) bool {
+	//check if the email is present or not in the corresponding table
 	var isValid bool
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -93,4 +94,14 @@ func isPasswordMatching(roll_no string, password string, dept_table string, colu
 	} else {
 		return true
 	}
+}
+
+func Verify_Staff(staff_id string) bool {
+	var isStaff bool
+	query := "select exists(select 1 from all_staffs where staff_id = $1)"
+	err := pool.QueryRow(context.Background(), query, staff_id).Scan(&isStaff)
+	if err != nil {
+		fmt.Println("error while find the existance of the staff_id - ", err)
+	}
+	return isStaff
 }

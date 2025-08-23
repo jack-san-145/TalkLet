@@ -64,19 +64,19 @@ func SendOtpHandler_for_staffs(w http.ResponseWriter, r *http.Request) {
 	}
 	email := r.FormValue("email")
 	fmt.Println("email - ", email)
-	isMatch, _ := regexp.MatchString(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`, email)
-	if !isMatch {
-		w.Write([]byte("<p>Invalid Email ❌❌</p>"))
-		return
-	}
+
+	// to verify a email for either staff or not
+	email = strings.TrimSpace(email)
 	isStaffMail := services.Find_staff_or_student_by_email(email)
 	if isStaffMail != "Staff" {
+		fmt.Println("isStaffMail - ", isStaffMail)
 		w.Write([]byte("<p>You are not a staff ❌❌</p>"))
 		return
 	}
 
 	if postgres.ValidateEmail(email, "all_staffs") {
 		w.Write([]byte("<p>You have already registered ❌</p>"))
+		// WriteJSON(w, r, map[string]string{"status": "You have already registered ❌"})
 		return
 	}
 	otp := generateOtp()

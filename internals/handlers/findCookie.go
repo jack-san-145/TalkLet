@@ -9,7 +9,7 @@ import (
 func FindCookie(r *http.Request) (bool, string) {
 	cookie, err := r.Cookie("session_id")
 	if err == http.ErrNoCookie {
-		fmt.Println("no cookie found ")
+		fmt.Println("no cookie found - ", err)
 		return false, ""
 	}
 	roll_no, _ := postgres.FindSessionPdb(cookie.Value)

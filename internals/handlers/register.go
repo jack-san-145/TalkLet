@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"net/http"
 	"tet/internals/models"
+	"tet/internals/services"
 	"tet/internals/storage/postgres"
 
 	"golang.org/x/crypto/bcrypt"
@@ -74,6 +75,7 @@ func StaffRegistration(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	isValid := VerifyOTP_for_staff(w, r, new_staff.Email, otp)
+	fmt.Println("returned value from the VerifyOTP_for_staff - ", isValid)
 	if !isValid {
 		w.Write([]byte("<p> invalid OTP ❌<p>"))
 		return
@@ -83,7 +85,12 @@ func StaffRegistration(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("<p>You have already registered ❌</p>"))
 		return
 	}
-
+	fmt.Println("dept from new_staff.Dept - ", new_staff.Dept)
+	fmt.Println("comparing departments - ", new_staff.Dept == services.Find_dept_from_staff_email(new_staff.Email))
+	if new_staff.Dept != services.Find_dept_from_staff_email(new_staff.Email) {
+		w.Write([]byte("<p>Department Mismatch</P>"))
+		return
+	}
 	//bcrypt the staff's password
 	bycrpted_password, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	if err != nil {

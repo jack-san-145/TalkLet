@@ -82,10 +82,11 @@ func FindBatch(batch string) (int, int) {
 }
 
 func Find_staff_or_student_by_email(email string) string {
+	email = strings.TrimSpace(email)
 	// Student regex
 	studentRe := regexp.MustCompile(`^(\d{2})([a-z]+)(\d+)@kamarajengg\.edu\.in$`)
 	// Staff regex
-	staffRe := regexp.MustCompile(`^([a-z]+)([a-z]{2,3})@kamarajengg\.edu\.in$`)
+	staffRe := regexp.MustCompile(`^([a-z]+)(cse|ece|it|eee|mech|mtr|civil|ads|bt)@kamarajengg\.edu\.in$`)
 	var whose_email string
 	if studentRe.MatchString(email) {
 		whose_email = "Student"
@@ -94,5 +95,13 @@ func Find_staff_or_student_by_email(email string) string {
 	if staffRe.MatchString(email) {
 		whose_email = "Staff"
 	}
+	fmt.Println("whose email - ", whose_email)
 	return whose_email
+}
+func Find_dept_from_staff_email(staff_email string) string {
+	staffRe := regexp.MustCompile(`^([a-z]+)(cse|ece|it|eee|mech|mtr|civil|ads|bt)@kamarajengg\.edu\.in$`)
+	mail_array := staffRe.FindStringSubmatch(staff_email)
+	department := mail_array[2] // department is the 2nd group
+	fmt.Printf("dept from email - %v", strings.ToUpper(department))
+	return strings.ToUpper(department) //convert the lowercase dept to uppercase 'cse'->'CSE'
 }

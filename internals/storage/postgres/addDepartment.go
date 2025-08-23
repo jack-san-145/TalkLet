@@ -6,19 +6,20 @@ import (
 )
 
 func AddNewDepartment(dept_name string) {
-	// addStudentTable(dept_name)
+	addStudentTable(dept_name)
 	createChatlist(dept_name)
 }
 
 func addStudentTable(dept_name string) {
 	table_name := dept_name + "_students"
+	unique_roll_email := dept_name + "_students_roll_email_unique"
 
 	query := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (
         roll_no       VARCHAR(10) PRIMARY KEY,
         register_no   TEXT UNIQUE,
         name          TEXT,
         dob           DATE,
-        email         TEXT UNIQUE,
+        email         TEXT ,
         password      TEXT,
         batch_year    INT,
         passing_year  INT,
@@ -26,8 +27,9 @@ func addStudentTable(dept_name string) {
         current_year  INT,
         section       VARCHAR(1),
         chairperson   TEXT,
-        mentor        TEXT
-   	  );`, table_name)
+        mentor        TEXT,
+		CONSTRAINT %s UNIQUE (roll_no, email)
+   	  );`, table_name, unique_roll_email)
 	_, err := pool.Exec(context.Background(), query)
 	if err != nil {
 		fmt.Println("error while creating the department_student_table - ", err)
@@ -40,9 +42,9 @@ func createDepartmentGroupTable(dept_name string) {
 	table_name := dept_name + "_all_groups"
 
 	query := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (
-        group_id    TEXT PRIMARY KEY,
+        group_id    SERIAL PRIMARY KEY,
         name        TEXT,
-        admin       JSONB,
+        admin       JSONB NOT NULL DEFAULT '[]'::jsonb,
         created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     ); `, table_name)
 	_, err := pool.Exec(context.Background(), query)
@@ -56,7 +58,7 @@ func createGroupMembersTable(dept_name string, dept__group_table string) {
 	table_name := dept_name + "_group_members"
 
 	query := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (
-        group_id    TEXT NOT NULL,
+        group_id    INT NOT NULL,
         member_id   TEXT NOT NULL,
         group_name  TEXT,
         isadmin     BOOLEAN,
@@ -72,7 +74,7 @@ func createGroupMembersTable(dept_name string, dept__group_table string) {
 func DropAllTable() {
 	var query string
 	var err error
-	arr := []string{"cse", "ece", "bt", "aids", "mtre", "eee", "mech", "civil", "it"}
+	arr := []string{"cs", "ec", "bt", "ad", "mt", "me", "it"} //"civil" , "eee" not added
 	for _, table_name := range arr {
 		query = fmt.Sprintf(`Drop table %s`, table_name+"_students")
 		_, err = pool.Exec(context.Background(), query)

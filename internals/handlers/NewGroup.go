@@ -8,9 +8,11 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"tet/internals/models"
 	"tet/internals/services"
 	"tet/internals/storage/postgres"
+	"time"
 
 	"github.com/xuri/excelize/v2"
 )
@@ -46,15 +48,22 @@ func GroupCreationByExcel(w http.ResponseWriter, r *http.Request) {
 	if !isFound {
 		return
 	}
+	isStaff := postgres.Verify_Staff(AdminID)
+	if !isStaff {
+		WriteJSON(w, r, map[string]string{"status": "Invalid staff "})
+		return
+	}
 	var (
 		file   multipart.File        // multipart is package and File is interface to do all the io operations
 		header *multipart.FileHeader //FileHeader stores the Filename , size of the file
 	)
-	err := r.ParseForm()
+	err := r.ParseMultipartForm(10 << 20) // for use 10mb of ram memory if the file size is more than that it will store the remaining part in the disk
 	if err != nil {
 		fmt.Println("error while parsing form - ", err)
 		return
 	}
+	group_name := r.FormValue("group_name")
+	fmt.Println("group_name - ", group_name)
 	//FormFile used to parse form
 	file, header, err = r.FormFile("excel_file")
 	if err != nil {
@@ -71,7 +80,7 @@ func GroupCreationByExcel(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("file Name - ", header.Filename)
 	fmt.Println("admin - ", AdminID)
 	SaveThisFile(&file, header) // function to save the execl file to disk
-	StartCreateGroup(AdminID, "", &file, header)
+	StartCreateGroup(AdminID, group_name, &file, header)
 
 }
 
@@ -127,10 +136,10 @@ func Showfilecontents(file *multipart.File, header *multipart.FileHeader) {
 func StartCreateGroup(admin string, group_name string, file *multipart.File, header *multipart.FileHeader) {
 	var Rows [][]string
 	var (
-		Department string
-		UploadedBy string
+	// Department string
+	// UploadedBy string
 	)
-	var new_Student models.StudentDetails
+	var Students []models.StudentDetails
 	excel_file, err := excelize.OpenFile("../../Excel-files/" + header.Filename)
 	if err != nil {
 		fmt.Printf("error while opening the file '%v' - %v", header.Filename, err)
@@ -142,47 +151,62 @@ func StartCreateGroup(admin string, group_name string, file *multipart.File, hea
 		fmt.Println("error while accessing the rows in the excel - ", err)
 		return
 	}
-	isKcetTalklet := Rows[0][0]
+	isKcetTalklet := strings.TrimSpace(Rows[0][0])
 	if isKcetTalklet != "KCET-TALKLET" {
 		fmt.Println("Invalid file to create group")
 		return
 	}
-	fmt.Println("rows - ", Rows)
-	fmt.Println("before branch .. ", Rows[2][1])
-	new_Student.Branch = Rows[2][1]
-	dept := Rows[3][1]
-	class := Rows[4][1]
-	batch := Rows[5][1]
-	new_Student.Chairperson = Rows[6][1]
-	UploadedBy = Rows[7][1]
-	Department = services.FindDeptByDept(dept)
-	new_Student.Current_year, new_Student.Section = services.Find_Year_And_Section(class)
-	new_Student.Batch_year, new_Student.Passing_year = services.FindBatch(batch)
+	// fmt.Println("rows - ", Rows)
+	// fmt.Println("before branch .. ", Rows[2][1])
+	branch := strings.TrimSpace(Rows[2][1])
+	dept := strings.TrimSpace(Rows[3][1])
+	class := strings.TrimSpace(Rows[4][1])
+	batch := strings.TrimSpace(Rows[5][1])
+	chairperson := strings.TrimSpace(Rows[6][1])
+	// UploadedBy = Rows[7][1]
+	current_year, section := services.Find_Year_And_Section(strings.TrimSpace(class))
+	batch_year, passing_year := services.FindBatch(strings.TrimSpace(batch))
+
 	for index, row := range Rows {
+		var new_Student models.StudentDetails
 		if len(row) == 0 {
 			continue
 		}
 		if index >= 10 {
 			fmt.Println("")
-			new_Student.Register_no = row[1]
-			new_Student.Roll_no = row[2]
-			new_Student.Name = row[3]
-			new_Student.DOB = row[4]
-			new_Student.Email = row[5]
-			new_Student.Mentor = row[6]
-			fmt.Println("register_no - ", new_Student.Register_no)
-			fmt.Println("roll_no - ", new_Student.Roll_no)
-			fmt.Println("name - ", new_Student.Name)
-			fmt.Println("dob - ", new_Student.DOB)
-			fmt.Println("email - ", new_Student.Email)
-			fmt.Println("mentor - ", new_Student.Mentor)
-			fmt.Println("branch - ", new_Student.Branch)
-			fmt.Println("Department - ", Department)
-			fmt.Printf("class - %v-%v ", new_Student.Current_year, new_Student.Section)
-			fmt.Printf("batch year - %v\npassing year - %v\nchairperson - %v\nuploadedby - %v", new_Student.Batch_year, new_Student.Passing_year, new_Student.Chairperson, UploadedBy)
-			fmt.Println("")
+			new_Student.Register_no = strings.TrimSpace(row[1])
+			new_Student.Roll_no = strings.TrimSpace(row[2])
+			new_Student.Name = strings.TrimSpace(row[3])
+			new_Student.Email = strings.TrimSpace(row[5])
+			new_Student.Mentor = strings.TrimSpace(row[6])
+			new_Student.Branch = branch
+			new_Student.Chairperson = chairperson
+			new_Student.Current_year = current_year
+			new_Student.Section = section
+			new_Student.Batch_year = batch_year
+			new_Student.Passing_year = passing_year
+			dob_str := strings.TrimSpace(row[4])
+			parsed, err := time.Parse("02-01-2006", dob_str)
+			if err != nil {
+				fmt.Println("error in dob parsing - ", err)
+			}
+			new_Student.DOB = parsed.Format("2006-01-02") // converting 15-01-2006 -> 2006-01-15
+			// fmt.Println("register_no - ", new_Student.Register_no)
+			// fmt.Println("roll_no - ", new_Student.Roll_no)
+			// fmt.Println("name - ", new_Student.Name)
+			// fmt.Println("dob - ", new_Student.DOB)
+			// fmt.Println("email - ", new_Student.Email)
+			// fmt.Println("mentor - ", new_Student.Mentor)
+			// fmt.Println("branch - ", new_Student.Branch)
+			// fmt.Println("Department - ", Department)
+			// fmt.Printf("class - %v-%v ", new_Student.Current_year, new_Student.Section)
+			// fmt.Printf("batch year - %v\npassing year - %v\nchairperson - %v\nuploadedby - %v", new_Student.Batch_year, new_Student.Passing_year, new_Student.Chairperson, UploadedBy)
+			// fmt.Println("")
+			Students = append(Students, new_Student)
 		}
 
 	}
+
+	postgres.CreateNewGroupPDB(admin, group_name, dept, Students)
 
 }

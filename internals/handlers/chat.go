@@ -8,7 +8,7 @@ import (
 	"tet/internals/storage/postgres"
 )
 
-func OneToOneChatlist(w http.ResponseWriter, r *http.Request) {
+func Chatlist(w http.ResponseWriter, r *http.Request) {
 	isFound, userId := FindCookie(r)
 	if !isFound {
 		return

@@ -30,6 +30,8 @@ func StudentLoginValidationHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	roll_no := r.FormValue("roll_no")
 	password := r.FormValue("password")
+
+	fmt.Println("roll no from initial student login handler - ", roll_no)
 	roll_no, isValid := postgres.ValidateStudentLogin(roll_no, password)
 	if !isValid {
 		w.Write([]byte("<p>Invalid username or Password ❌</p>"))

@@ -41,7 +41,7 @@ func LoadOTOChatMessagesPDb(userID string, contactID string, limit int, offset i
 		created_at_time    time.Time
 	)
 
-	services.FindDeptStudentByRollNo(userID)
+	services.Find_dept_from_rollNo(userID)
 	query := "select * from all_messages where (sender_id =$1 and receiver_id = $2) or (sender_id =$3 and receiver_id = $4) order by msg_id desc limit $5 offset $6 "
 	rows, err := pool.Query(context.Background(), query, userID, contactID, contactID, userID, limit, offset)
 	if err == sql.ErrNoRows {

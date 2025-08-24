@@ -8,36 +8,51 @@ import (
 	"time"
 )
 
-// "context"
-// "fmt"
-// "tet/internals/models"
-// "time"
-
 func LoadChatlist(userId string) []models.ChatlistToSend {
 	var ChatLists []models.ChatlistToSend
+	var (
+		// dept           string
+		// dept_table     string
+		chatlist_table string
+	)
+	is_student_or_staff := services.Find_staff_or_student_by_id(userId)
+	if is_student_or_staff == "STUDENT" {
+		_, _, chatlist_table = services.Find_dept_from_rollNo(userId)
+	} else if is_student_or_staff == "STAFF" {
+		_, _, chatlist_table = find_dept_from_staffId(userId)
+	}
 
-	dept_table := services.FindDeptChatlistByRollno(userId)
-	query := fmt.Sprintf(`select receiver_id,last_msg,created_at from %s where sender_id = $1 and is_group = FALSE`, dept_table)
+	query := fmt.Sprintf(`select receiver_id,last_msg,created_at,is_group,group_id,last_msg_id from %s where sender_id = $1`, chatlist_table)
 	rows, err := pool.Query(context.Background(), query, userId)
 	if err != nil {
-		fmt.Println("error while fetching one to one chatlist from db - ", err)
+		fmt.Println("error while fetching chatlist from db - ", err)
 		return nil
 	}
+
 	for rows.Next() {
 		var created_at_time time.Time
 		var chat_list models.ChatlistToSend
+		chat_list.UserId = userId
 		err := rows.Scan(
 			&chat_list.ContactId,
 			&chat_list.LastMsg,
 			&created_at_time,
-		)
+			&chat_list.IsGroup,
+			&chat_list.Group_id,
+			&chat_list.LastMsgId)
 		fmt.Println("created_at_time - ", created_at_time)
 
 		chat_list.CreatedAt = created_at_time.Format("2006-01-02 15:04:05")
 		if err != nil {
 			fmt.Println("error while scanning the chatlist - ", err)
 		}
-		chat_list.ContactName, _, _, err = FindUser(chat_list.ContactId)
+
+		if chat_list.IsGroup {
+			chat_list.GroupName = Find_groupname_by_groupid(chat_list.Group_id) //here contact name in the sense it as the group name
+		} else {
+			chat_list.ContactName, _, _, err = FindContact(chat_list.ContactId)
+		}
+
 		if err != nil {
 			fmt.Print("error - ", err.Error())
 			return nil
@@ -73,26 +88,26 @@ func AddLastMsgToChatlist(senderId string, receiverId string, last_msg_id int64,
 	}
 }
 
-func AddTochatlist(newContact models.ChatlistForLocal, isGroup bool) {
+// func AddTochatlist(newContact models.ChatlistForLocal, isGroup bool) {
 
-	dept_table := services.FindDeptStudentByRollNo(newContact.UserID)
-	query := fmt.Sprintf(`insert into %s(sender_id,receiver_id,is_group,group_id,last_msg,last_msg_id,first_msg_id) values($1,$2,$3,$4,$5,$6,$7)`, dept_table)
-	pool.Exec(context.Background(), query,
-		newContact.UserID,
-		newContact.ContactId,
-		newContact.IsGroup,
-		newContact.GroupId,
-		newContact.LastMsg,
-		newContact.LastMsgId,
-		newContact.FirstMsgId)
+// 	// dept_table := services.FindDeptStudentByRollNo(newContact.UserID)
+// 	query := fmt.Sprintf(`insert into %s(sender_id,receiver_id,is_group,group_id,last_msg,last_msg_id,first_msg_id) values($1,$2,$3,$4,$5,$6,$7)`, dept_table)
+// 	pool.Exec(context.Background(), query,
+// 		newContact.UserID,
+// 		newContact.ContactId,
+// 		newContact.IsGroup,
+// 		newContact.GroupId,
+// 		newContact.LastMsg,
+// 		newContact.LastMsgId,
+// 		newContact.FirstMsgId)
 
-	query = fmt.Sprintf(`insert into %s(sender_id,receiver_id,is_group,group_id,last_msg,last_msg_id,first_msg_id) values($1,$2,$3,$4,$5,$6,$7)`, dept_table)
-	pool.Exec(context.Background(), query,
-		newContact.ContactId,
-		newContact.UserID,
-		newContact.IsGroup,
-		newContact.GroupId,
-		newContact.LastMsg,
-		newContact.LastMsgId,
-		newContact.FirstMsgId)
-}
+// 	query = fmt.Sprintf(`insert into %s(sender_id,receiver_id,is_group,group_id,last_msg,last_msg_id,first_msg_id) values($1,$2,$3,$4,$5,$6,$7)`, dept_table)
+// 	pool.Exec(context.Background(), query,
+// 		newContact.ContactId,
+// 		newContact.UserID,
+// 		newContact.IsGroup,
+// 		newContact.GroupId,
+// 		newContact.LastMsg,
+// 		newContact.LastMsgId,
+// 		newContact.FirstMsgId)
+// }

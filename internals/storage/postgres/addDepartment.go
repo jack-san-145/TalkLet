@@ -42,11 +42,13 @@ func createDepartmentGroupTable(dept_name string) {
 	table_name := dept_name + "_all_groups"
 
 	query := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (
-        group_id    SERIAL PRIMARY KEY,
-        name        TEXT,
-        admin       JSONB NOT NULL DEFAULT '[]'::jsonb,
-        created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    ); `, table_name)
+    group_id         TEXT PRIMARY KEY,
+    group_serial_no  SERIAL,
+    name             TEXT NOT NULL DEFAULT '',
+    admin            JSONB NOT NULL DEFAULT '[]'::jsonb,
+    created_at       TIMESTAMP DEFAULT current_timestamp
+);
+`, table_name)
 	_, err := pool.Exec(context.Background(), query)
 	if err != nil {
 		fmt.Println("error while creating the department_all_group_table - ", err)
@@ -58,10 +60,10 @@ func createGroupMembersTable(dept_name string, dept__group_table string) {
 	table_name := dept_name + "_group_members"
 
 	query := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (
-        group_id    INT NOT NULL,
-        member_id   TEXT NOT NULL,
-        group_name  TEXT,
-        isadmin     BOOLEAN,
+        group_id    TEXT NOT NULL default '',
+        member_id   TEXT NOT NULL default '',
+        group_name  TEXT NOT NULL default '',
+        isadmin     BOOLEAN NOT NULL default false,
         PRIMARY KEY (group_id, member_id),
 		FOREIGN KEY (group_id) REFERENCES %s(group_id) ON DELETE CASCADE
     );`, table_name, dept__group_table)
@@ -115,12 +117,12 @@ func createChatlist(dept_name string) {
 	dept := dept_name + "_students"
 	query := fmt.Sprintf(`create table if not exists %s(
 	sender_id varchar(10),
-	receiver_id varchar(10),
-	is_group boolean default false,
-	group_id int,
-	last_msg text,
-	last_msg_id bigint,
-	first_msg_id bigint,
+	receiver_id varchar(10) not null default '',
+	is_group boolean not null default false,
+	group_id text not null default '',
+	last_msg text not null default '',
+	last_msg_id bigint not null default 0,
+	first_msg_id bigint not null default 0,
 	created_at timestamp default current_timestamp,
 	primary key(sender_id,receiver_id),
 	foreign key (sender_id) references %s(roll_no) on delete cascade);`, table_name, dept)

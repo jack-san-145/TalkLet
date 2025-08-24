@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"tet/internals/models"
 	"tet/internals/services"
 	"time"
@@ -49,24 +50,36 @@ func insert_student_into_dept_table(department string, Students []models.Student
 	}
 }
 
-func add_new_group(admin string, group_name string, department string) (int32, string, error) {
-	var group_id int32
+func add_new_group(admin string, group_name string, department string) (string, string, error) {
+	var group_serial_no int
+	var group_id string
+
+	dept := services.FindDeptByDept(department)
 
 	//adding new group to the dept_all_groups and returning its group_id
-	dept_table := services.FindDeptByDept(department) + "_all_groups"
+	dept_table := dept + "_all_groups"
 	created_at := time.Now().Format("2006-01-02 15:04:05")
 	// admin = "T2505778"
 	adminJson := fmt.Sprintf(`["%s"]`, admin)
-	query := fmt.Sprintf(`insert into %s(name,admin,created_at) values($1,$2::jsonb ,$3) returning group_id`, dept_table)
-	err := pool.QueryRow(context.Background(), query, group_name, adminJson, created_at).Scan(&group_id)
+	query := fmt.Sprintf(`insert into %s(group_id,name,admin,created_at) values(gen_random_uuid(),$1,$2::jsonb ,$3) returning group_serial_no`, dept_table)
+	err := pool.QueryRow(context.Background(), query, group_name, adminJson, created_at).Scan(&group_serial_no)
+	if err != nil {
+		// actual_err := fmt.Sprint("error while adding new group - ", err)
+		fmt.Sprint("error while adding new group - ", err)
+		add_new_group(admin, group_name, department)
+		// return 0, "", fmt.Errorf(actual_err)
+	}
+	group_id = dept + "_" + strconv.Itoa(group_serial_no) // generating group_id like 'cs_1'
+	update_query := fmt.Sprintf(`update %s set group_id = $1 where group_serial_no = $2`, dept_table)
+	_, err = pool.Exec(context.Background(), update_query, group_id, group_serial_no)
 	if err != nil {
 		actual_err := fmt.Sprint("error while adding new group - ", err)
-		return 0, "", fmt.Errorf(actual_err)
+		return "", "", fmt.Errorf(actual_err)
 	}
 	return group_id, dept_table, nil
 }
 
-func add_group_members(dept string, group_id int32, group_name string, admin string, students []models.StudentDetails) {
+func add_group_members(dept string, group_id string, group_name string, admin string, students []models.StudentDetails) {
 	table_name := services.FindDeptByDept(dept) + "_group_members"
 	//query to add only the admin by their staff_id
 	query := fmt.Sprintf(`insert into %s(group_id,member_id,group_name,isadmin) values($1,$2,$3,$4)`, table_name)

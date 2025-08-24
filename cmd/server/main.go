@@ -43,27 +43,34 @@ func main() {
 
 	router.Mount("/Static/", http.StripPrefix("/Static/", http.FileServer(http.Dir("../../ui/Static"))))
 	router.Post("/update", handlers.UpdateHandler)
+
 	router.Get("/", handlers.ServeLogin)
+
 	router.Post("/talklet/send-otp-student", handlers.SendOtpHandler_for_students)
 	router.Post("/talklet/send-otp-staff", handlers.SendOtpHandler_for_staffs)
+
 	router.Post("/talklet/verify-otp-student", handlers.VerifyOTP_for_student_handler)
 	router.Post("/talklet/verify-otp-staff", handlers.VerifyOTP_for_staff_handler)
+
 	router.Post("/talklet/set-password", handlers.SetPassword)
+
 	router.Get("/talklet/serve-register", handlers.ServeRegister)
 	router.Post("/talklet/new-register", handlers.AccountRegisterHandler)
-	router.Post("/talklet/validate-student-login", handlers.StudentLoginValidationHandler)
-	router.Post("/talklet/validate-staff-login", handlers.StaffLoginValidationHandler)
 	router.Get("/talklet/serve-index", handlers.ServeIndex)
 	router.Get("/talklet/profile/{id}", handlers.ProfileHandler)
+
+	router.Post("/talklet/validate-student-login", handlers.StudentLoginValidationHandler)
+	router.Post("/talklet/validate-staff-login", handlers.StaffLoginValidationHandler)
+
 	router.Get("/ws", websocket.UpgradeToWebsocket)
 
 	router.Post("/talklet/register-new-staff", handlers.StaffRegistration)
+	router.Post("/talklet/creategroup-with-excel", handlers.GroupCreationByExcel)
 
 	router.Get("/talklet/chat-history/{contact_id}", handlers.LoadChatMessages)
-	router.Get("/talklet/get-all-OTO-chatlist", handlers.OneToOneChatlist)
+	router.Get("/talklet/get-all-chatlist", handlers.Chatlist)
 
 	router.Post("/talklet/create-new-group", handlers.GroupCreation)
-	router.Post("/talklet/creategroup-with-excel", handlers.GroupCreationByExcel)
 
 	postgres.ConnectToDb()    //connect to postgres
 	redis.CreateRedisClient() //create redis client

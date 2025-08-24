@@ -62,7 +62,11 @@ type ChatlistToSend struct {
 	ContactId   string `json:"contact_id"`
 	ContactName string `json:"contact_name"`
 	LastMsg     string `json:"last_msg"`
+	LastMsgId   string `json:"last_msg_id"`
 	CreatedAt   string `json:"created_at"`
+	IsGroup     bool   `json:"is_group"`
+	Group_id    string `json:"group_id"`
+	GroupName   string `json:"group_name`
 }
 
 type ChatlistForLocal struct {

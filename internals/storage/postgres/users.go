@@ -41,7 +41,7 @@ func ValidateStudentLogin(roll_no string, password string) (string, bool) {
 	var (
 		isValid bool
 	)
-	dept_table := services.FindDeptStudentByRollNo(roll_no)
+	_, dept_table, _ := services.Find_dept_from_rollNo(roll_no)
 	column_name := "roll_no"
 	isValid = isPasswordMatching(roll_no, password, dept_table, column_name)
 	return roll_no, isValid
@@ -57,15 +57,25 @@ func ValidateStaffLogin(staff_id string, password string) (string, bool) {
 	return staff_id, isValid
 }
 
-func FindUser(userId string) (string, string, string, error) {
+func FindContact(userId string) (string, string, string, error) {
 	var (
-		name     string
-		password string
-		email    string
+		name       string
+		password   string
+		email      string
+		TABLE_NAME string
+		SEARCH_BY  string
 	)
-	dept_table := services.FindDeptStudentByRollNo(userId)
 
-	query := fmt.Sprintf(`select name,email,password from %s where roll_no = $1`, dept_table)
+	is_staff_or_student := services.Find_staff_or_student_by_id(userId)
+	if is_staff_or_student == "STAFF" {
+		TABLE_NAME = "all_staffs"
+		SEARCH_BY = "staff_id"
+	} else if is_staff_or_student == "STUDENT" {
+		_, TABLE_NAME, _ = services.Find_dept_from_rollNo(userId)
+		SEARCH_BY = "roll_no"
+	}
+
+	query := fmt.Sprintf(`select name,email,password from %s where %s = $1`, TABLE_NAME, SEARCH_BY)
 	err := pool.QueryRow(context.Background(), query, userId).Scan(&name, &email, &password)
 	if err == sql.ErrNoRows {
 		fmt.Println("invalid user id - ", err)
@@ -104,4 +114,37 @@ func Verify_Staff(staff_id string) bool {
 		fmt.Println("error while find the existance of the staff_id - ", err)
 	}
 	return isStaff
+}
+
+// used to find the group_name for both the student and staff's chatlist
+func Find_groupname_by_groupid(group_id string) string {
+	var group_name string
+	dept := fmt.Sprintf(`%c%c`, group_id[0], group_id[1]) // here finding the dept from group_id (cs_1) -> cs
+	TABLE_NAME := dept + "_all_groups"
+	query := fmt.Sprintf(`select name from %s where group_id = $1`, TABLE_NAME)
+	err := pool.QueryRow(context.Background(), query, group_id).Scan(&group_name)
+	if err != nil {
+		fmt.Println("error while accesing the group_name from group_id - ", err)
+	}
+	return group_name
+
+}
+
+func find_dept_from_staffId(staff_id string) (string, string, string) {
+
+	var (
+		dept                 string
+		staff_table          string
+		staff_chatlist_table string
+	)
+
+	query := "select dept from all_staffs where staff_id = $1"
+	err := pool.QueryRow(context.Background(), query, staff_id).Scan(&dept)
+	if err != nil {
+		fmt.Println("error while finding the staffs department - ", err)
+	}
+	dept = services.FindDeptByDept(dept)
+	staff_table = "all_staffs"
+	staff_chatlist_table = "all_staffs_chatlist"
+	return dept, staff_table, staff_chatlist_table
 }

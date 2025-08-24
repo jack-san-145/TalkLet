@@ -604,7 +604,7 @@
   })
 
   async function get_all_chatlist(){
-    const response = await fetch('/talklet/get-all-OTO-chatlist') 
+    const response = await fetch('/talklet/get-all-chatlist') 
     const data=await response.json()
     Alpine.store('globalVar').chatlist=data
     console.log("global chatlist - ",Alpine.store('globalVar').chatlist)

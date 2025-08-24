@@ -148,3 +148,17 @@ CREATE INDEX idx_sender_receiver_2025_08
         password TEXT,
         dept TEXT
     );
+
+12. chatlist for all_staffs
+
+create table if not exists all_staffs_chatlist(
+        sender_id varchar(10),
+        receiver_id varchar(10),
+        is_group boolean default false,
+        group_id int,
+        last_msg text,
+        last_msg_id bigint,
+        first_msg_id bigint,
+        created_at timestamp default current_timestamp,
+        primary key(sender_id,receiver_id)
+);

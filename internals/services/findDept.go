@@ -14,14 +14,15 @@ func FindDeptStudentByEmail(email string) string {
 	return dept_table
 }
 
-func FindDeptStudentByRollNo(roll_no string) string {
-	dept := fmt.Sprintf("%c"+"%c", roll_no[3], roll_no[4]) // find the specific table for that email
-	dept_table := dept + "_students"
-	return dept_table
+func Find_dept_from_rollNo(roll_no string) (string, string, string) {
+	dept := fmt.Sprintf("%c"+"%c", roll_no[3], roll_no[4]) // find the specific table for that roll_no
+	dept_students_table := dept + "_students"
+	dept_chatlist_table := dept + "_chatlist"
+	return dept, dept_students_table, dept_chatlist_table
 }
 
 func FindDeptChatlistByRollno(roll_no string) string {
-	dept := fmt.Sprintf("%c"+"%c", roll_no[3], roll_no[4]) // find the specific table for that email
+	dept := fmt.Sprintf("%c"+"%c", roll_no[3], roll_no[4]) // find the specific table for that roll_no
 	dept_table := dept + "_chatlist"
 	return dept_table
 }
@@ -105,3 +106,18 @@ func Find_dept_from_staff_email(staff_email string) string {
 	fmt.Printf("dept from email - %v", strings.ToUpper(department))
 	return strings.ToUpper(department) //convert the lowercase dept to uppercase 'cse'->'CSE'
 }
+
+func Find_staff_or_student_by_id(ID string) string {
+	Re := regexp.MustCompile(`^\d{2}[up](bt|cs|ec|it|ee|me|mt|ci|ad)\d{3}$`)
+	if Re.MatchString(ID) {
+		return "STUDENT"
+	} else {
+		return "STAFF"
+	}
+
+}
+
+// func Find_dept_from_rollNo(roll_no string) string {
+// 	dept := fmt.Sprintf("%c"+"%c", roll_no[3], roll_no[4]) // find the specific table for that roll_no
+// 	return dept
+// }

@@ -162,3 +162,4 @@ create table if not exists all_staffs_chatlist(
         created_at timestamp default current_timestamp,
         primary key(sender_id,receiver_id)
 );
+

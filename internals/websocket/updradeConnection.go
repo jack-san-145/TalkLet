@@ -12,7 +12,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var ConnMap = make(map[string]*websocket.Conn)
 
 func UpgradeToWebsocket(w http.ResponseWriter, r *http.Request) {
 	CookieFound, senderID := handlers.FindCookie(r)
@@ -36,13 +35,17 @@ func UpgradeToWebsocket(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println("error while upgrade http to websocket - ", err)
 	}
-	ConnMap[senderID] = websocketConn
-	for user_id, _ := range ConnMap {
-		fmt.Println("connected user-id - ", user_id)
-	}
+	Set_ws_conn(senderID, websocketConn) //store the new ws connection to the ConnMap
+
+	ConnMap.Range(func(key any, value any) bool {
+		id, ok := key.(string)
+		// conn:=value.(*websocket.Conn)
+		fmt.Printf("id - %v is connected\n", id)
+		return ok
+	})
+	Get_ws_Conn(senderID)
 	defer func() {
-		ConnMap[senderID].Close()
-		delete(ConnMap, senderID)
+		del_ws_conn(senderID) //to delete the ws_connection from the ConnMap
 	}()
 
 	for {
@@ -109,7 +112,14 @@ func sendAck(msg_sent_by_sender *models.Message, msg_type int) {
 		return
 	}
 	fmt.Printf(" ack - %+v\n ", msg_sent_by_sender)
-	err = ConnMap[msg_sent_by_sender.SenderID].WriteMessage(msg_type, msg_sent_by_sender_byte)
+	
+	ws_conn, is_alive := Get_ws_Conn(msg_sent_by_sender.SenderID)
+	if !is_alive {
+		fmt.Println("websocket connection is not found")
+		return
+	}
+
+	err = ws_conn.WriteMessage(msg_type, msg_sent_by_sender_byte)
 	if err != nil {
 		fmt.Println("error while sending ack to sender - ", err)
 	}
@@ -124,7 +134,8 @@ func sendMsgTo(msg_send_to_frd *models.Message, msg_type int) {
 		return
 	}
 	fmt.Println("msg_send_to_frd - ", msg_send_to_frd)
-	receiver_id, ok := ConnMap[msg_send_to_frd.ReceiverID]
+
+	receiver_id, ok := Get_ws_Conn(msg_send_to_frd.ReceiverID)
 	if !ok {
 		fmt.Printf("%v goes to offline - ", msg_send_to_frd.ReceiverID)
 		return

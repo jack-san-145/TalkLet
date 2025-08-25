@@ -8,6 +8,7 @@ import (
 	"tet/internals/models"
 	"tet/internals/services"
 	"tet/internals/storage/redis"
+
 	"time"
 
 	_ "github.com/lib/pq"
@@ -48,17 +49,6 @@ func LoadOTOChatMessagesPDb(userID string, contactID string, limit int, offset i
 		fmt.Println("no messages")
 		return nil, fmt.Errorf("empty chat")
 	}
-
-	// type Message struct {
-	//     ID         int64  `json:"msg_id"`
-	//     SenderID   string `json:"sender_id"`
-	//     ReceiverID string `json:"receiver_id"`
-	//     Type       string `json:"type"`
-	//     Content    string `json:"content"`
-	//     CreatedAt  string `json:"created_at"`
-	//     IsAck      string `json:"is_ack"`
-	//     Status     string `json:"status"`
-	// }
 
 	for rows.Next() {
 		var message models.Message

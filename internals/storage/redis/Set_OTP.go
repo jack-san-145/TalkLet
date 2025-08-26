@@ -10,7 +10,7 @@ import (
 
 func Set_OTP_to_redis(email string, otp string) {
 
-	err := rdb.Set(context.Background(), email, otp, time.Minute).Err()
+	err := rdb.Set(context.Background(), email, otp, time.Minute*3).Err()
 	if err != nil {
 		fmt.Println("error while adding the otp to the redis - ", err)
 		return

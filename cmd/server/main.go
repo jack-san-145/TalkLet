@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"tet/internals/handlers"
+	"tet/internals/storage/minio"
 	"tet/internals/storage/postgres"
 	"tet/internals/storage/redis"
 	"tet/internals/websocket"
@@ -74,6 +75,7 @@ func main() {
 
 	postgres.ConnectToDb()    //connect to postgres
 	redis.CreateRedisClient() //create redis client
+	minio.CreateMinioClient() //create minio client
 
 	// cs,ad,bt,ec,it,me,mt
 

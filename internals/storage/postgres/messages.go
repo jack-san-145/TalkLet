@@ -4,6 +4,7 @@ import (
 	// "database/sql"
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"tet/internals/models"
 	"tet/internals/services"
@@ -14,16 +15,40 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func StoreMessagesPostDB(message models.Message) int64 {
+func Store_Privatechat_MessagesPostDB(message models.Message) int64 {
 	redis_client := redis.GiveRedisConnection()
 	var msgId int64
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	services.CheckForMessagePartition(redis_client, pool)
+
 	if message.Type == "text/plain" {
 		query := "insert into all_messages(sender_id,receiver_id,type,content,created_at) values($1,$2,$3,$4,$5) returning msg_id"
 		err := pool.QueryRow(ctx, query, message.SenderID, message.ReceiverID, message.Type, message.Content, message.CreatedAt).Scan(&msgId)
+		if err != nil {
+			fmt.Println("error while inserting the messages - ", err)
+			return 0
+		}
+		return msgId
+
+	} else if message.Type == "file" || message.Type == "media" {
+
+		// meta_data := fmt.Sprintf(`'{file_name : %s , file_size : %d , file_url : %s , mime_type : %s}'`, message.MetaData.FileName, message.MetaData.FileSize, message.MetaData.FileURL, message.MetaData.MimeType)
+		meta_data := map[string]any{
+			"file_name": message.MetaData.FileName,
+			"file_size": message.MetaData.FileSize,
+			"file_url":  message.MetaData.FileURL,
+			"mime_type": message.MetaData.MimeType,
+		}
+		meta_data_json, err := json.Marshal(meta_data)
+		if err != nil {
+			fmt.Println("error while marshal meta data to json - ", err)
+			return 0
+		}
+
+		query := "insert into all_messages(sender_id,receiver_id,type,content,meta_data,created_at) values($1,$2,$3,$4, $5::jsonb ,$6) returning msg_id"
+		err = pool.QueryRow(ctx, query, message.SenderID, message.ReceiverID, message.Type, message.Content, string(meta_data_json), message.CreatedAt).Scan(&msgId)
 		if err != nil {
 			fmt.Println("error while inserting the messages - ", err)
 			return 0

@@ -55,7 +55,7 @@ func CheckForMessagePartition(rdb *redis.Client, pool *pgxpool.Pool) {
 			return
 		}
 
-		//set the partition status in redis
+		//set the partition status in redis for 30 days
 		err = rdb.Set(context.Background(), "is_partition_created", true, time.Hour*30*24).Err()
 		if err != nil {
 			fmt.Println("error while setting the partition status to redis - ", err)

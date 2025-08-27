@@ -11,8 +11,9 @@ import (
 var (
 	Minio_client *minio.Client
 	err          error
-	Bucket_name  string
 )
+
+var Bucket_name = "talklet-media"
 
 func CreateMinioClient() {
 	endpoint := "localhost:9000"

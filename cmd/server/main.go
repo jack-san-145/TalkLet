@@ -73,6 +73,7 @@ func main() {
 
 	router.Post("/talklet/create-new-group", handlers.GroupCreation)
 
+	router.Post("/talklet/chat/file-upload", handlers.ChatFileUploads)
 	postgres.ConnectToDb()    //connect to postgres
 	redis.CreateRedisClient() //create redis client
 	minio.CreateMinioClient() //create minio client

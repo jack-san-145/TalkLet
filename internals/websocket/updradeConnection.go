@@ -12,7 +12,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-
 func UpgradeToWebsocket(w http.ResponseWriter, r *http.Request) {
 	CookieFound, senderID := handlers.FindCookie(r)
 	if !CookieFound {
@@ -101,7 +100,7 @@ func sendAck(msg_sent_by_sender *models.Message, msg_type int) {
 	// var temp models.Message
 	if msg_type == 1 { // which is websocket.TextMessage(1)
 		msg_sent_by_sender.Type = "text/plain"
-		msg_sent_by_sender.ID = postgres.StoreMessagesPostDB(*msg_sent_by_sender)
+		msg_sent_by_sender.ID = postgres.Store_Privatechat_MessagesPostDB(*msg_sent_by_sender)
 		msg_sent_by_sender.Status = "sent"
 	}
 
@@ -112,7 +111,7 @@ func sendAck(msg_sent_by_sender *models.Message, msg_type int) {
 		return
 	}
 	fmt.Printf(" ack - %+v\n ", msg_sent_by_sender)
-	
+
 	ws_conn, is_alive := Get_ws_Conn(msg_sent_by_sender.SenderID)
 	if !is_alive {
 		fmt.Println("websocket connection is not found")

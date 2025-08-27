@@ -70,7 +70,7 @@ type ChatlistToSend struct {
 	CreatedAt   string `json:"created_at"`
 	IsGroup     bool   `json:"is_group"`
 	Group_id    string `json:"group_id"`
-	GroupName   string `json:"group_name`
+	GroupName   string `json:"group_name"`
 }
 
 type ChatlistForLocal struct {

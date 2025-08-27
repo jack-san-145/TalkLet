@@ -1,6 +1,8 @@
 package models
 
 import (
+	"mime/multipart"
+	"net/url"
 	"time"
 )
 
@@ -41,20 +43,22 @@ type Profile struct {
 }
 
 type MetaData struct {
-	FileURL  string `json:"file_url"`
-	FileSize int64  `json:"file_size"`
-	MimeType string `json:"mime_type"`
+	FileName string   `json:"file_name"`
+	FileURL  *url.URL `json:"file_url"` // this is an url which is api to fetch the particular file/image from the minio
+	FileSize int64    `json:"file_size"`
+	MimeType string   `json:"mime_type"`
 }
 type Message struct {
-	ID         int64    `json:"msg_id"`
-	SenderID   string   `json:"sender_id"`
-	ReceiverID string   `json:"receiver_id"`
-	Type       string   `json:"type"`
-	Content    string   `json:"content"`
-	CreatedAt  string   `json:"created_at"`
-	MetaData   MetaData `json:"meta_data"`
-	IsAck      string   `json:"is_ack"`
-	Status     string   `json:"status"`
+	ID         int64          `json:"msg_id"`
+	SenderID   string         `json:"sender_id"`
+	ReceiverID string         `json:"receiver_id"`
+	Type       string         `json:"type"`
+	Content    string         `json:"content"`
+	CreatedAt  string         `json:"created_at"`
+	ActualFile multipart.File `json:"actual_file"`
+	MetaData   MetaData       `json:"meta_data"`
+	IsAck      string         `json:"is_ack"`
+	Status     string         `json:"status"`
 }
 
 type ChatlistToSend struct {

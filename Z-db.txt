@@ -115,14 +115,14 @@
 
 
 10. CREATE TABLE all_messages (
-        msg_id BIGSERIAL ,
-        sender_id VARCHAR(10),
-        receiver_id VARCHAR(10),
-        type TEXT,
-        content TEXT,
-        meta_data JSONB,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        status TEXT default 'sent' 
+        msg_id BIGSERIAL PRIMARY KEY,
+        sender_id VARCHAR(10) NOT NULL DEFAULT '',
+        receiver_id VARCHAR(10) NOT NULL DEFAULT '',
+        type TEXT NOT NULL DEFAULT '',
+        content TEXT NOT NULL DEFAULT '',
+        meta_data JSONB NOT NULL DEFAULT '{}'::jsonb,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        status TEXT NOT NULL DEFAULT 'sent'
     ) PARTITION BY RANGE (created_at);
 
 

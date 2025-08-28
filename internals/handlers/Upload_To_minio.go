@@ -54,7 +54,13 @@ func ChatFileUploads(w http.ResponseWriter, r *http.Request) {
 	} else {
 		media_msg.ReceiverID = r.FormValue("receiver_id")
 		media_msg.ID = postgres.Store_Privatechat_MessagesPostDB(media_msg)
-		minio.UploadFile_private_chats(media_msg)
+		if media_msg.ID != 0 {
+			status := minio.UploadFile_private_chats(&media_msg)
+			WriteJSON(w, r, status)
+		}
+		minio.GetFile_private_chats(&media_msg)
+		// fmt.Println("presigned url - ", media_msg.MetaData.FileURL)
+
 	}
 
 }

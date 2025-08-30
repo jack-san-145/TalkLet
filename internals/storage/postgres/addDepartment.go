@@ -81,18 +81,28 @@ func DropAllTable() {
 		query = fmt.Sprintf(`Drop table %s`, table_name+"_students")
 		_, err = pool.Exec(context.Background(), query)
 		if err != nil {
-			fmt.Println("error while deleting 1st", err)
+			fmt.Println("error while deleting _students", err)
 		}
 
 		query = fmt.Sprintf(`Drop table %s`, table_name+"_group_members")
 		_, err = pool.Exec(context.Background(), query)
 		if err != nil {
-			fmt.Println("error while deleting 3rd", err)
+			fmt.Println("error while deleting _group_members", err)
 		}
 		query = fmt.Sprintf(`Drop table %s`, table_name+"_all_groups")
 		_, err = pool.Exec(context.Background(), query)
 		if err != nil {
-			fmt.Println("error while deleting 2nd", err)
+			fmt.Println("error while deleting _all_groups", err)
+		}
+		query = fmt.Sprintf(`Drop table %s`, table_name+"_chatlist")
+		_, err = pool.Exec(context.Background(), query)
+		if err != nil {
+			fmt.Println("error while deleting _chatlist", err)
+		}
+		query = fmt.Sprintf(`Drop table %s`, table_name+"group_all_messages")
+		_, err = pool.Exec(context.Background(), query)
+		if err != nil {
+			fmt.Println("error while deleting group_all_messages", err)
 		}
 	}
 
@@ -138,5 +148,24 @@ func DropChatlistTable(dept string) {
 	_, err := pool.Exec(context.Background(), query)
 	if err != nil {
 		fmt.Println("error while drop chatlist table - ", err)
+	}
+}
+
+func CreateGroupMessageTable(dept string) {
+	table_name := dept + "group_all_messages"
+	query_for_group_message_table := fmt.Sprintf(`CREATE TABLE %s (
+				msg_id BIGSERIAL ,
+				sender_id VARCHAR(10) NOT NULL DEFAULT '',
+				group_id VARCHAR(10) NOT NULL DEFAULT '',
+				type TEXT NOT NULL DEFAULT '',
+				content TEXT NOT NULL DEFAULT '',
+				meta_data JSONB NOT NULL DEFAULT '{}'::jsonb,
+				created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+				status TEXT NOT NULL DEFAULT 'sent'
+			) PARTITION BY RANGE (created_at);`, table_name)
+	_, err := pool.Exec(context.Background(), query_for_group_message_table)
+	if err != nil {
+		fmt.Println("error while creating the group message table - ", err)
+		return
 	}
 }

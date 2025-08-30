@@ -115,7 +115,7 @@
 
 
 10. CREATE TABLE all_messages (
-        msg_id BIGSERIAL PRIMARY KEY,
+        msg_id BIGSERIAL,
         sender_id VARCHAR(10) NOT NULL DEFAULT '',
         receiver_id VARCHAR(10) NOT NULL DEFAULT '',
         type TEXT NOT NULL DEFAULT '',

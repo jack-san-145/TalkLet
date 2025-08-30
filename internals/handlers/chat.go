@@ -36,6 +36,7 @@ func LoadChatMessages(w http.ResponseWriter, r *http.Request) {
 		WriteJSON(w, r, "the chat is empty")
 		return
 	}
+	fmt.Println("from the LoadChatMessages handlers - ", AllMessages)
 	WriteJSON(w, r, AllMessages)
 
 }

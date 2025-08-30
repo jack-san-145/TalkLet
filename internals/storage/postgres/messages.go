@@ -22,10 +22,10 @@ func Store_Privatechat_MessagesPostDB(message models.Message) int64 {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	services.CheckForMessagePartition(redis_client, pool)
+	services.Check_Private_MessagePartition(redis_client, pool)
 
 	if message.Type == "text/plain" {
-		query := "insert into all_messages(sender_id,receiver_id,type,content,created_at) values($1,$2,$3,$4,$5) returning msg_id"
+		query := "insert into all_private_messages(sender_id,receiver_id,type,content,created_at) values($1,$2,$3,$4,$5) returning msg_id"
 		err := pool.QueryRow(ctx, query, message.SenderID, message.ReceiverID, message.Type, message.Content, message.CreatedAt).Scan(&msgId)
 		if err != nil {
 			fmt.Println("error while inserting the messages - ", err)
@@ -48,7 +48,7 @@ func Store_Privatechat_MessagesPostDB(message models.Message) int64 {
 			return 0
 		}
 
-		query := "insert into all_messages(sender_id,receiver_id,type,content,meta_data,created_at) values($1,$2,$3,$4, $5::jsonb ,$6) returning msg_id"
+		query := "insert into all_private_messages(sender_id,receiver_id,type,content,meta_data,created_at) values($1,$2,$3,$4, $5::jsonb ,$6) returning msg_id"
 		err = pool.QueryRow(ctx, query, message.SenderID, message.ReceiverID, message.Type, message.Content, string(meta_data_json), message.CreatedAt).Scan(&msgId)
 		if err != nil {
 			fmt.Println("error while inserting the messages - ", err)
@@ -74,7 +74,7 @@ func LoadOTOChatMessagesPDb(userID string, contactID string, limit int, offset i
 				coalesce((meta_data ->> 'file_size')::bigint,0) as file_size,
 				coalesce(meta_data ->> 'mime_type','') as mime_type,
 				created_at,
-				status from all_messages where (sender_id =$1 and receiver_id = $2) or (sender_id =$3 and receiver_id = $4) order by msg_id desc limit $5 offset $6 `
+				status from all_private_messages where (sender_id =$1 and receiver_id = $2) or (sender_id =$3 and receiver_id = $4) order by msg_id desc limit $5 offset $6 `
 	rows, err := pool.Query(context.Background(), query, userID, contactID, contactID, userID, limit, offset)
 	if err == sql.ErrNoRows {
 		fmt.Println("no messages")

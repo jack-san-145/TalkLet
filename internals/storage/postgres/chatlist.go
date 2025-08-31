@@ -63,7 +63,7 @@ func LoadChatlist(userId string) []models.ChatlistToSend {
 	return ChatLists
 }
 
-func AddLastMsgToChatlist(senderId string, receiverId string, last_msg_id int64, content string, createdAt string) {
+func AddLastMsgToChatlist_private_chat(senderId string, receiverId string, last_msg_id int64, content string, createdAt string) {
 
 	sender_dept := services.FindDeptChatlistByRollno(senderId)
 	receiver_dept := services.FindDeptChatlistByRollno(receiverId)
@@ -72,7 +72,7 @@ func AddLastMsgToChatlist(senderId string, receiverId string, last_msg_id int64,
 	defer cancel()
 
 	//to add last msg to the sender
-	query := fmt.Sprintf(`update %v set last_msg_id = $1 ,last_msg = $2 , created_at = $3  where sender_id = $4 and receiver_id =$5 `, sender_dept)
+	query := fmt.Sprintf(`update %s set last_msg_id = $1 ,last_msg = $2 , created_at = $3  where sender_id = $4 and receiver_id =$5 `, sender_dept)
 	_, err := pool.Exec(ctx, query, last_msg_id, content, createdAt, senderId, receiverId)
 	if err != nil {
 		fmt.Println("error while updating messages to sender's chatlist - ", err)
@@ -80,7 +80,7 @@ func AddLastMsgToChatlist(senderId string, receiverId string, last_msg_id int64,
 	}
 
 	//to add last msg to the receiver
-	query = fmt.Sprintf(`update %v set last_msg_id = $1,last_msg = $2 , created_at = $3  where sender_id = $4 and receiver_id =$5 `, receiver_dept)
+	query = fmt.Sprintf(`update %s set last_msg_id = $1,last_msg = $2 , created_at = $3  where sender_id = $4 and receiver_id =$5 `, receiver_dept)
 	_, err = pool.Exec(ctx, query, last_msg_id, content, createdAt, receiverId, senderId)
 	if err != nil {
 		fmt.Println("error while updating messages to receiver's chatlist - ", err)

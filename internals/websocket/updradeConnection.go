@@ -19,11 +19,6 @@ func UpgradeToWebsocket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var (
-		Send_msg_To       models.Message
-		received_msg_From models.Message
-	)
-
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			return true
@@ -47,72 +42,60 @@ func UpgradeToWebsocket(w http.ResponseWriter, r *http.Request) {
 		del_ws_conn(senderID) //to delete the ws_connection from the ConnMap
 	}()
 
+	listen_for_ws_msg(websocketConn, senderID)
+}
+
+func listen_for_ws_msg(websocketConn *websocket.Conn, senderID string) {
+
+	var message_from_sender models.Message //this is my message which i want to send to my frd
 	for {
 
 		//receiving message
 		msg_type, msg, err := websocketConn.ReadMessage()
 		msg_time := time.Now().Format("2006-01-02 15:04:05")
-		received_msg_From.CreatedAt = msg_time
-		received_msg_From.SenderID = senderID
+		message_from_sender.CreatedAt = msg_time
+		message_from_sender.SenderID = senderID
 		if err != nil {
 			fmt.Println("error while reading ws- ", err)
 			return
 		}
-		err = json.Unmarshal(msg, &received_msg_From)
+
+		err = json.Unmarshal(msg, &message_from_sender)
 		if err != nil {
 			fmt.Println("error while unmarshal - ", err)
 		}
 
-		sendAck(&received_msg_From, msg_type)
-		fmt.Println("received message  details after ack - ", received_msg_From)
+		if message_from_sender.IsGroup {
 
-		// sending the received msg
-		Send_msg_To.ID = received_msg_From.ID
-		Send_msg_To.SenderID = senderID
-		Send_msg_To.ReceiverID = received_msg_From.ReceiverID
-		Send_msg_To.Content = received_msg_From.Content
-		Send_msg_To.Type = received_msg_From.Type
-		Send_msg_To.CreatedAt = msg_time
-		sendMsgTo(&Send_msg_To, msg_type) //send to frd
+		}
+		send_this_msg_to_private_chat(&message_from_sender, msg_type) //send ack for sender message
 
-		// for _, conn := range ConnMap {
-		// 	if conn == websocketConn {
-		// 		continue
-		// 	}
-		// 	// temp := []byte(fmt.Sprintf("from client - %v", size))
-		// 	// combined_msg := append(temp, msg...)
-		// 	sending_data, _ := json.Marshal(Send_msg_To)
-		// 	err := conn.WriteMessage(msg_type, sending_data)
-		// 	if err != nil {
-		// 		fmt.Println("error while write ws - ", err)
-		// 		delete(ConnMap, senderID)
-		// 		return
-		// 	}
-		// 	fmt.Println("sending message to details - ", Send_msg_To)
-
-		// }
 	}
 }
 
-func sendAck(msg_sent_by_sender *models.Message, msg_type int) {
-	msg_sent_by_sender.IsAck = "ack"
+func send_this_msg_to_private_chat(message_from_sender *models.Message, msg_type int) {
+
+	//sending ack to the sender itself
+
+	// var message_to_receiver models.Message //this is the my message which is going to send to my frd
+	message_from_sender.IsAck = "ack"
 
 	// var temp models.Message
 	if msg_type == 1 { // which is websocket.TextMessage(1)
-		msg_sent_by_sender.Type = "text/plain"
-		msg_sent_by_sender.ID = postgres.Store_Privatechat_MessagesPostDB(*msg_sent_by_sender)
-		msg_sent_by_sender.Status = "sent"
+		message_from_sender.Type = "text/plain"
+		message_from_sender.ID = postgres.Store_Privatechat_MessagesPostDB(*message_from_sender)
+		message_from_sender.Status = "sent"
 	}
 
-	go postgres.AddLastMsgToChatlist(msg_sent_by_sender.SenderID, msg_sent_by_sender.ReceiverID, msg_sent_by_sender.ID, msg_sent_by_sender.Content, msg_sent_by_sender.CreatedAt)
-	msg_sent_by_sender_byte, err := json.Marshal(msg_sent_by_sender)
+	go postgres.AddLastMsgToChatlist_private_chat(message_from_sender.SenderID, message_from_sender.ReceiverID, message_from_sender.ID, message_from_sender.Content, message_from_sender.CreatedAt)
+	msg_sent_by_sender_byte, err := json.Marshal(message_from_sender)
 	if err != nil {
 		fmt.Println("error while marshal ack - ", err)
 		return
 	}
-	fmt.Printf(" ack - %+v\n ", msg_sent_by_sender)
+	fmt.Printf(" ack - %+v\n ", message_from_sender)
 
-	ws_conn, is_alive := Get_ws_Conn(msg_sent_by_sender.SenderID)
+	ws_conn, is_alive := Get_ws_Conn(message_from_sender.SenderID)
 	if !is_alive {
 		fmt.Println("websocket connection is not found")
 		return
@@ -123,24 +106,106 @@ func sendAck(msg_sent_by_sender *models.Message, msg_type int) {
 		fmt.Println("error while sending ack to sender - ", err)
 	}
 
+	fmt.Println("received message  details after ack - ", message_from_sender)
+
+	// sending the received msg
+
+	// message_to_receiver = *message_from_sender
+
+	// message_to_receiver.ID = message_from_sender.ID
+	// message_to_receiver.SenderID = message_from_sender.SenderID
+	// message_to_receiver.ReceiverID = message_from_sender.ReceiverID
+	// message_to_receiver.Content = message_from_sender.Content
+	// message_to_receiver.Type = message_from_sender.Type
+	// message_to_receiver.CreatedAt = message_from_sender.CreatedAt
+	sendMsgTo_receiver_private_chat(message_from_sender, msg_type) //send to frd
+
 }
 
-func sendMsgTo(msg_send_to_frd *models.Message, msg_type int) {
-	msg_send_to_frd.IsAck = "not-ack"
-	sending_msg_byte, err := json.Marshal(msg_send_to_frd)
+func sendMsgTo_receiver_private_chat(message_to_receiver *models.Message, msg_type int) {
+	message_to_receiver.IsAck = "not-ack"
+	sending_msg_byte, err := json.Marshal(message_to_receiver)
 	if err != nil {
 		fmt.Println("error while marshal sending_msg_byte - ", sending_msg_byte)
 		return
 	}
-	fmt.Println("msg_send_to_frd - ", msg_send_to_frd)
+	fmt.Println("msg_send_to_frd - ", message_to_receiver)
 
-	receiver_id, ok := Get_ws_Conn(msg_send_to_frd.ReceiverID)
+	receiver_id, ok := Get_ws_Conn(message_to_receiver.ReceiverID)
 	if !ok {
-		fmt.Printf("%v goes to offline - ", msg_send_to_frd.ReceiverID)
+		fmt.Printf("%v goes to offline - ", message_to_receiver.ReceiverID)
 		return
 	}
 	err = receiver_id.WriteMessage(msg_type, sending_msg_byte)
 	if err != nil {
-		fmt.Println("error while sending msg_send_to_frd - ", err)
+		fmt.Println("error while sending message_to_receiver private - ", err)
+	}
+}
+
+// function to send ack for sender message to him itself
+func send_this_msg_to_group_chat(message_from_sender *models.Message, msg_type int) {
+	message_from_sender.IsAck = "ack"
+
+	// var temp models.Message
+	if msg_type == 1 { // which is websocket.TextMessage(1)
+		message_from_sender.Type = "text/plain"
+		// message_from_sender.ID = postgres.Store_Privatechat_MessagesPostDB(*message_from_sender)
+		message_from_sender.Status = "sent"
+	}
+
+	// go postgres.AddLastMsgToChatlist(message_from_sender.SenderID, message_from_sender.ReceiverID, message_from_sender.ID, message_from_sender.Content, message_from_sender.CreatedAt)
+	message_from_sender_byte, err := json.Marshal(message_from_sender)
+	if err != nil {
+		fmt.Println("error while marshal ack - ", err)
+		return
+	}
+	fmt.Printf(" ack - %+v\n ", message_from_sender)
+
+	ws_conn, is_alive := Get_ws_Conn(message_from_sender.SenderID)
+	if !is_alive {
+		fmt.Println("websocket connection is not found")
+		return
+	}
+
+	err = ws_conn.WriteMessage(msg_type, message_from_sender_byte)
+	if err != nil {
+		fmt.Println("error while sending ack to sender group chat- ", err)
+	}
+	sendMsgTo_receiver_group_chat(message_from_sender, msg_type)
+
+}
+
+func sendMsgTo_receiver_group_chat(message_to_receiver *models.Message, msg_type int) {
+
+	var Group_members []string
+
+	message_to_receiver.IsAck = "not-ack"
+	message_to_receiver_byte, err := json.Marshal(message_to_receiver)
+	if err != nil {
+		fmt.Println("error while marshal sending_msg_byte - ", message_to_receiver_byte)
+		return
+	}
+	fmt.Println("message_to_receiver - ", message_to_receiver)
+
+	if len(Group_members) == 0 {
+		fmt.Println("group is empty !! ")
+		return
+	}
+
+	for _, member := range Group_members {
+
+		if member == message_to_receiver.SenderID { //to avoid the same message send to that sender
+			continue
+		}
+
+		receiver_id, ok := Get_ws_Conn(member)
+		if !ok {
+			fmt.Printf("%v goes to offline - ", member)
+			return
+		}
+		err = receiver_id.WriteMessage(msg_type, message_to_receiver_byte)
+		if err != nil {
+			fmt.Println("error while sending message_to_receiver - ", err)
+		}
 	}
 }

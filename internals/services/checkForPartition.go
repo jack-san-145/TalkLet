@@ -15,7 +15,7 @@ func Check_Private_MessagePartition(rdb *redis.Client, pool *pgxpool.Pool) {
 	fmt.Println("today day in month - ", today)
 
 	//for checking only one time in the month
-	if today != 12 { //change it to 1 to make the partition from day 1 of the month
+	if today != 1 { //change it to 1 to make the partition from day 1 of the month
 		return
 	}
 
@@ -86,7 +86,7 @@ func Check_Group_MessagePartition(rdb *redis.Client, pool *pgxpool.Pool, dept st
 	fmt.Println("today day in month - ", today)
 
 	//for checking only one time in the month
-	if today != 12 { //change it to 1 to make the partition from day 1 of the month
+	if today != 1 { //change it to 1 to make the partition from day 1 of the month
 		return
 	}
 

@@ -60,6 +60,50 @@ func Store_Privatechat_MessagesPostDB(message models.Message) int64 {
 
 }
 
+func Store_Groupchat_MessagesPostDB(message models.Message, dept string) int64 {
+	redis_client := redis.GiveRedisConnection()
+	var msgId int64
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	services.Check_Group_MessagePartition(redis_client, pool, dept)
+	table_name := dept + "group_all_messages" //table name varies depends upon departments
+	if message.Type == "text/plain" {
+		query := fmt.Sprintf(`insert into %s(sender_id,group_id,type,content,created_at) values($1,$2,$3,$4,$5) returning msg_id`, table_name)
+		err := pool.QueryRow(ctx, query, message.SenderID, message.GroupId, message.Type, message.Content, message.CreatedAt).Scan(&msgId)
+		if err != nil {
+			fmt.Println("error while inserting the messages to the group chat - ", err)
+			return 0
+		}
+		return msgId
+
+	} else if message.Type == "file" || message.Type == "media" {
+
+		// meta_data := fmt.Sprintf(`'{file_name : %s , file_size : %d , file_url : %s , mime_type : %s}'`, message.MetaData.FileName, message.MetaData.FileSize, message.MetaData.FileURL, message.MetaData.MimeType)
+		meta_data := map[string]any{
+			"file_name": message.MetaData.FileName,
+			"file_size": message.MetaData.FileSize,
+			"file_url":  message.MetaData.FileURL,
+			"mime_type": message.MetaData.MimeType,
+		}
+		meta_data_json, err := json.Marshal(meta_data)
+		if err != nil {
+			fmt.Println("error while marshal meta data to json - ", err)
+			return 0
+		}
+
+		query := fmt.Sprintf(`insert into %s(sender_id,group_id,type,content,meta_data,created_at) values($1,$2,$3,$4, $5::jsonb ,$6) returning msg_id`, table_name)
+		err = pool.QueryRow(ctx, query, message.SenderID, message.GroupId, message.Type, message.Content, string(meta_data_json), message.CreatedAt).Scan(&msgId)
+		if err != nil {
+			fmt.Println("error while inserting the messages to the group chat - ", err)
+			return 0
+		}
+		return msgId
+	}
+	return 0
+
+}
+
 func LoadOTOChatMessagesPDb(userID string, contactID string, limit int, offset int) ([]models.Message, error) {
 	var AllMessages []models.Message
 	var (

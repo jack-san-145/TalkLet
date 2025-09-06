@@ -19,7 +19,8 @@ func LoadChatlist(userId string) []models.ChatlistToSend {
 	if is_student_or_staff == "STUDENT" {
 		_, _, chatlist_table = services.Find_dept_from_rollNo(userId)
 	} else if is_student_or_staff == "STAFF" {
-		_, _, chatlist_table = find_dept_from_staffId(userId)
+		_, _, chatlist_table, _ = Find_dept_from_staff_id(userId)
+
 	}
 
 	query := fmt.Sprintf(`select receiver_id,last_msg,created_at,is_group,group_id,last_msg_id from %s where sender_id = $1`, chatlist_table)
@@ -87,6 +88,39 @@ func AddLastMsgToChatlist_private_chat(senderId string, receiverId string, last_
 		return
 	}
 }
+
+// func AddLastMsgToChatlist_group_chat(message models.Message) {
+
+// 	var (
+// 		receiver_dept string
+// 	)
+// 	dept_from_group := services.Find_dept_from_groupId(message.GroupId)
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
+
+// 	//to find the groupmembers
+// 	All_group_members, err := Get_all_group_members(message.SenderID, dept_from_group)
+// 	if err != nil {
+// 		fmt.Println("error while getting group members - ", err)
+// 		return
+// 	}
+
+// 	//to add last msg to the sender
+// 	query := fmt.Sprintf(`update %s set last_msg_id = $1 ,last_msg = $2 , created_at = $3  where sender_id = $4 and receiver_id =$5 `, sender_dept)
+// 	_, err := pool.Exec(ctx, query, last_msg_id, content, createdAt, senderId, receiverId)
+// 	if err != nil {
+// 		fmt.Println("error while updating messages to sender's chatlist - ", err)
+// 		return
+// 	}
+
+// 	//to add last msg to the receiver
+// 	query = fmt.Sprintf(`update %s set last_msg_id = $1,last_msg = $2 , created_at = $3  where sender_id = $4 and receiver_id =$5 `, receiver_dept)
+// 	_, err = pool.Exec(ctx, query, last_msg_id, content, createdAt, receiverId, senderId)
+// 	if err != nil {
+// 		fmt.Println("error while updating messages to receiver's chatlist - ", err)
+// 		return
+// 	}
+// }
 
 // func AddTochatlist(newContact models.ChatlistForLocal, isGroup bool) {
 

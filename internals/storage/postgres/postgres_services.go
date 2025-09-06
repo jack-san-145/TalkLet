@@ -7,23 +7,60 @@ import (
 	"tet/internals/services"
 )
 
-func Find_dept_from_staff_id(staff_id string) (string, error) {
+func Find_dept_from_staff_id(staff_id string) (string, string, string, error) {
+
 	var (
-		dept_from_db  string
-		original_dept string
+		dept                 string
+		staff_table          string
+		staff_chatlist_table string
 	)
 
-	//get the dept from staff table -> CSE
 	query := "select dept from all_staffs where staff_id = $1"
-	err := pool.QueryRow(context.Background(), query, staff_id).Scan(&dept_from_db)
+	err := pool.QueryRow(context.Background(), query, staff_id).Scan(&dept)
+	if err != nil {
+		fmt.Println("error while finding the staffs department - ", err)
+		return "", "", "", fmt.Errorf(err.Error())
+	}
+	dept = services.FindDeptByDept(dept)
+	staff_table = "all_staffs"
+	staff_chatlist_table = "all_staffs_chatlist"
+	return dept, staff_table, staff_chatlist_table, nil
+}
+
+func Get_all_group_members(sender_id string, dept string) ([]map[string]string, error) {
+	var All_group_members []map[string]string
+
+	group_table_name := dept + "_group_members"
+	group_members_query := fmt.Sprintf(`select member_id from %s where group_id = $1`, group_table_name)
+	Rows, err := pool.Query(context.Background(), group_members_query)
 	if err == sql.ErrNoRows {
-		return "", fmt.Errorf("invalid staff id")
-	} else if err == nil {
-		fmt.Println("error while finding dept from all_staffs table - ", err)
-		return "", fmt.Errorf(err.Error())
+		fmt.Println("group is empty ")
+		return nil, fmt.Errorf("group is empty")
 	}
 
-	//get the dept from dept -> (CSE -> cs )
-	original_dept = services.FindDeptByDept(dept_from_db)
-	return original_dept, nil
+	for Rows.Next() {
+		var member_and_dept = make(map[string]string)
+		var (
+			group_member_id string
+			member_chatlist string
+		)
+		err := Rows.Scan(&group_member_id)
+		if err != nil {
+			fmt.Println("error while fetching the group")
+			return nil, fmt.Errorf(err.Error())
+		}
+		if sender_id == group_member_id {
+			continue
+		}
+		staff_or_student := services.Find_staff_or_student_by_id(group_member_id)
+		if staff_or_student == "STUDENT" {
+			_, _, member_chatlist = services.Find_dept_from_rollNo(group_member_id)
+		} else if staff_or_student == "STAFF" {
+			_, _, member_chatlist, _ = Find_dept_from_staff_id(group_member_id)
+		}
+		member_and_dept[group_member_id] = member_chatlist
+
+		All_group_members = append(All_group_members, member_and_dept) //adding maps with id with department to the All_group_members
+	}
+	return All_group_members, nil
 }

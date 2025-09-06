@@ -165,7 +165,13 @@ func Find_staff_or_student_by_id(ID string) string {
 
 }
 
-// func Find_dept_from_rollNo(roll_no string) string {
-// 	dept := fmt.Sprintf("%c"+"%c", roll_no[3], roll_no[4]) // find the specific table for that roll_no
-// 	return dept
-// }
+func Find_dept_from_groupId(group_id string) string {
+	var dept string
+	group_dept_regexp := regexp.MustCompile(`^(cs|ad|bt|ec|me|mt|it|ce|ee)_`)
+	matches := group_dept_regexp.FindStringSubmatch(group_id) // 'cse_1' -> ['cs_','cs']
+	if len(matches) > 1 {
+		dept = matches[1] // ['cs_','cs'] -> 'cs'
+	}
+	return dept
+
+}

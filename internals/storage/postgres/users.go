@@ -129,22 +129,3 @@ func Find_groupname_by_groupid(group_id string) string {
 	return group_name
 
 }
-
-func find_dept_from_staffId(staff_id string) (string, string, string) {
-
-	var (
-		dept                 string
-		staff_table          string
-		staff_chatlist_table string
-	)
-
-	query := "select dept from all_staffs where staff_id = $1"
-	err := pool.QueryRow(context.Background(), query, staff_id).Scan(&dept)
-	if err != nil {
-		fmt.Println("error while finding the staffs department - ", err)
-	}
-	dept = services.FindDeptByDept(dept)
-	staff_table = "all_staffs"
-	staff_chatlist_table = "all_staffs_chatlist"
-	return dept, staff_table, staff_chatlist_table
-}

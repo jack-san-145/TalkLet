@@ -59,7 +59,7 @@ func add_new_group(admin string, group_name string, department string) (string, 
 	//adding new group to the dept_all_groups and returning its group_id
 	dept_table := dept + "_all_groups"
 	created_at := time.Now().Format("2006-01-02 15:04:05")
-	// admin = "T2505778"
+	// admin = "T2505145"
 	adminJson := fmt.Sprintf(`["%s"]`, admin)
 	query := fmt.Sprintf(`insert into %s(group_id,name,admin,created_at) values(gen_random_uuid(),$1,$2::jsonb ,$3) returning group_serial_no`, dept_table)
 	err := pool.QueryRow(context.Background(), query, group_name, adminJson, created_at).Scan(&group_serial_no)

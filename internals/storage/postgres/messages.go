@@ -60,12 +60,13 @@ func Store_Privatechat_MessagesPostDB(message models.Message) int64 {
 
 }
 
-func Store_Groupchat_MessagesPostDB(message models.Message, dept string) int64 {
+func Store_Groupchat_MessagesPostDB(message models.Message) int64 {
 	redis_client := redis.GiveRedisConnection()
 	var msgId int64
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	dept := services.Find_dept_from_groupId(message.GroupId) // finding the dept
 	services.Check_Group_MessagePartition(redis_client, pool, dept)
 	table_name := dept + "group_all_messages" //table name varies depends upon departments
 	if message.Type == "text/plain" {
@@ -180,7 +181,7 @@ func Load_GroupChatMessages_PDb(userID string, groupID string, limit int, offset
 		dept, _, _ = services.Find_dept_from_rollNo(userID)
 	} else if student_or_staff == "STAFF" {
 		var err error
-		dept, err = Find_dept_from_staff_id(userID)
+		dept, _, _, err = Find_dept_from_staff_id(userID)
 		if err != nil {
 			return []models.Message{}, err //empty slice and err
 		}

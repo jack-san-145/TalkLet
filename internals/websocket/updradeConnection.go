@@ -149,7 +149,7 @@ func send_this_msg_to_group_chat(message_from_sender *models.Message, msg_type i
 	// var temp models.Message
 	if msg_type == 1 { // which is websocket.TextMessage(1)
 		message_from_sender.Type = "text/plain"
-		// message_from_sender.ID = postgres.Store_Groupchat_MessagesPostDB(*message_from_sender)
+		message_from_sender.ID = postgres.Store_Groupchat_MessagesPostDB(*message_from_sender)
 		message_from_sender.Status = "sent"
 	}
 

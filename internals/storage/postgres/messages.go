@@ -104,7 +104,7 @@ func Store_Groupchat_MessagesPostDB(message models.Message, dept string) int64 {
 
 }
 
-func LoadOTOChatMessagesPDb(userID string, contactID string, limit int, offset int) ([]models.Message, error) {
+func Load_PrivateChatMessages_PDb(userID string, contactID string, limit int, offset int) ([]models.Message, error) {
 	var AllMessages []models.Message
 	var (
 		// meta_data_validate any
@@ -164,5 +164,70 @@ func LoadOTOChatMessagesPDb(userID string, contactID string, limit int, offset i
 		AllMessages = append(AllMessages, message)
 	}
 	fmt.Printf("message for the sender_id - %v is %v", userID, AllMessages)
+	return AllMessages, nil
+}
+
+func Load_GroupChatMessages_PDb(userID string, groupID string, limit int, offset int) ([]models.Message, error) {
+	var AllMessages []models.Message
+	var (
+		dept string
+		// meta_data_validate any
+		// meta_data          models.MetaData
+		created_at_time time.Time
+	)
+	student_or_staff := services.Find_staff_or_student_by_id(userID)
+	if student_or_staff == "STUDENT" {
+		dept, _, _ = services.Find_dept_from_rollNo(userID)
+	} else if student_or_staff == "STAFF" {
+		var err error
+		dept, err = Find_dept_from_staff_id(userID)
+		if err != nil {
+			return []models.Message{}, err //empty slice and err
+		}
+	}
+
+	dept_table := dept + "_group_all_messages"
+
+	query := fmt.Sprintf(`select msg_id,group_id,type,content,
+				coalesce(meta_data ->> 'file_name','') as file_name,
+				coalesce((meta_data ->> 'file_size')::bigint,0) as file_size,
+				coalesce(meta_data ->> 'mime_type','') as mime_type,
+				created_at,
+				status from %s where group_id = $1 order by msg_id desc limit $2 offset $3 `, dept_table)
+	rows, err := pool.Query(context.Background(), query, groupID, limit, offset)
+	if err == sql.ErrNoRows {
+		fmt.Println("no group messages yet ")
+		return nil, fmt.Errorf("empty group chat")
+	} else if err != nil {
+		fmt.Println("error while fetching the group chat history from db - ", err)
+	}
+	fmt.Println("comming outside the rows.Next() ")
+	for rows.Next() {
+		fmt.Println("comming inside the rows.Next() ")
+		var message models.Message
+		message.SenderID = userID
+		err := rows.Scan(
+			&message.ID,
+			&message.GroupId,
+			&message.Type,
+			&message.Content,
+			&message.MetaData.FileName,
+			&message.MetaData.FileSize,
+			&message.MetaData.MimeType,
+			&created_at_time,
+			&message.Status,
+		)
+		message.CreatedAt = created_at_time.Format("2006-01-02 15:04:05")
+		if message.MetaData.FileName != "" {
+			minio.GetFile_private_chats(&message)
+		}
+		if err != nil {
+			fmt.Println("error while scanning the group chat history - ", err)
+		}
+		// fmt.Println("meta_data - ", meta_data)
+		fmt.Println("message - ", message)
+		AllMessages = append(AllMessages, message)
+	}
+	fmt.Printf("message for the group_id - %v is %v", groupID, AllMessages)
 	return AllMessages, nil
 }

@@ -152,9 +152,10 @@ func DropChatlistTable(dept string) {
 }
 
 func CreateGroupMessageTable(dept string) {
-	table_name := dept + "group_all_messages"
+	table_name := dept + "_group_all_messages"
 	query_for_group_message_table := fmt.Sprintf(`CREATE TABLE %s (
 				msg_id BIGSERIAL ,
+				sender_id VARCHAR(10) NOT NULL DEFAULT '',
 				sender_id VARCHAR(10) NOT NULL DEFAULT '',
 				group_id VARCHAR(10) NOT NULL DEFAULT '',
 				type TEXT NOT NULL DEFAULT '',

@@ -53,6 +53,7 @@ type Message struct {
 	ReceiverID string         `json:"receiver_id"`
 	IsGroup    bool           `json:"is_group"`
 	GroupId    string         `json:"group_id"`
+	SenderDept string         `json:"sender_dept"`
 	Type       string         `json:"type"`
 	Content    string         `json:"content"`
 	CreatedAt  string         `json:"created_at"`

@@ -68,7 +68,8 @@ func main() {
 	router.Post("/talklet/register-new-staff", handlers.StaffRegistration)
 	router.Post("/talklet/creategroup-with-excel", handlers.GroupCreationByExcel)
 
-	router.Get("/talklet/chat-history/{contact_id}", handlers.LoadChatMessages)
+	router.Get("/talklet/chat-history/{contact_id}", handlers.LoadPrivateChatMessages)
+	router.Get("/talklet/group-chat-history/{group-id}", handlers.LoadGroupChatMessages)
 	router.Get("/talklet/get-all-chatlist", handlers.Chatlist)
 
 	router.Post("/talklet/create-new-group", handlers.GroupCreation)
@@ -104,7 +105,7 @@ func main() {
 	// postgres.AlterTable()
 	fmt.Println("server running")
 	port := ":" + os.Getenv("PORT")
-	err = http.ListenAndServe(port, router)
+	err = http.ListenAndServe("0.0.0.0"+port, router)
 	if err != nil {
 		fmt.Println("server failure - ", err)
 	}

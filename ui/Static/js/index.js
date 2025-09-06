@@ -20,6 +20,7 @@ let alpineVars
     console.log('active chat - ',Alpine.store('globalVar').active_chat)
   }
 
+
   let input_msg
   const socket=new WebSocket(`ws://${window.location.hostname}:8989/ws`)
   const search_input=document.getElementsByClassName("search-input")

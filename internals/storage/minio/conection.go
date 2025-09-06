@@ -16,7 +16,10 @@ var (
 var Bucket_name = "talklet-media"
 
 func CreateMinioClient() {
-	endpoint := "localhost:9000"
+	// endpoint := "localhost:9000"
+
+	// endpoint := "10.10.5.153:9000"
+	endpoint := "192.168.170.106:9000"
 	username := os.Getenv("MINIO_CONTAINER_ROOT_USER")      //root username
 	password := os.Getenv("MINIO_CONTAINER_ROOT_PASSWORD")  //root password
 	isSLL := false                                          //http or https

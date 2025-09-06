@@ -8,24 +8,72 @@ import (
 )
 
 func FindDeptStudentByEmail(email string) string {
-	//23ucs145@kamarajengg.edu.in
-	dept := fmt.Sprintf("%c"+"%c", email[3], email[4]) // find the specific table for that email
-	dept_table := dept + "_students"
-	return dept_table
+	var (
+		dept                string
+		dept_students_table string
+	)
+	var emailRegex = regexp.MustCompile(`^\d{2}(u|p)(cs|ad|it|ee|ec|mt|bt|ce|me)[a-z]?(\d+)@`)
+	matches := emailRegex.FindStringSubmatch(email)
+	if len(matches) > 1 {
+		dept = matches[2] // matches = [23ucs145@ u cs 145]
+		dept_students_table = dept + "_students"
+	}
+	return dept_students_table
 }
 
-func Find_dept_from_rollNo(roll_no string) (string, string, string) {
-	dept := fmt.Sprintf("%c"+"%c", roll_no[3], roll_no[4]) // find the specific table for that roll_no
-	dept_students_table := dept + "_students"
-	dept_chatlist_table := dept + "_chatlist"
+func Find_dept_from_rollNo(rollNo string) (string, string, string) {
+	var (
+		dept                string
+		dept_students_table string
+		dept_chatlist_table string
+	)
+	var rollRegex = regexp.MustCompile(`^\d{2}[up](cs|it|ee|ec|mt|bt|ce|me)(\d+)$`)
+
+	matches := rollRegex.FindStringSubmatch(rollNo)
+	if len(matches) > 1 {
+		dept = matches[2] // matches = [23ucs145 u cs 145]
+		dept_students_table = dept + "_students"
+		dept_chatlist_table = dept + "_chatlist"
+	}
 	return dept, dept_students_table, dept_chatlist_table
 }
 
-func FindDeptChatlistByRollno(roll_no string) string {
-	dept := fmt.Sprintf("%c"+"%c", roll_no[3], roll_no[4]) // find the specific table for that roll_no
-	dept_table := dept + "_chatlist"
-	return dept_table
+func FindDeptChatlistByRollno(rollNo string) string {
+	var (
+		dept                string
+		dept_chatlist_table string
+	)
+	var rollRegex = regexp.MustCompile(`^\d{2}(u|p)(cs|it|ee|ec|mt|bt|ce|me)(\d+)$`)
+	matches := rollRegex.FindStringSubmatch(rollNo)
+	if len(matches) > 1 {
+		dept = matches[2] // matches = [23ucs145 u cs 145]
+
+		dept_chatlist_table = dept + "_chatlist"
+	}
+	fmt.Println("matches in chatlist - ", matches)
+	return dept_chatlist_table
 }
+
+// func FindDeptStudentByEmail(email string) string {
+// 	//23ucs145@kamarajengg.edu.in
+// 	dept := fmt.Sprintf("%c"+"%c", email[3], email[4]) // find the specific table for that email
+// 	dept_table := dept + "_students"
+// 	return dept_table
+// }
+
+// func Find_dept_from_rollNo(roll_no string) (string, string, string) {
+// 	//23ucs145,22uit133
+// 	dept := fmt.Sprintf("%c"+"%c", roll_no[3], roll_no[4]) // find the specific table for that roll_no
+// 	dept_students_table := dept + "_students"
+// 	dept_chatlist_table := dept + "_chatlist"
+// 	return dept, dept_students_table, dept_chatlist_table
+// }
+
+// func FindDeptChatlistByRollno(roll_no string) string {
+// 	dept := fmt.Sprintf("%c"+"%c", roll_no[3], roll_no[4]) // find the specific table for that roll_no
+// 	dept_table := dept + "_chatlist"
+// 	return dept_table
+// }
 
 func FindDeptByDept(dept string) string {
 	var original_dept string

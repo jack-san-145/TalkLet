@@ -49,15 +49,14 @@ func Get_all_group_members(sender_id string, dept string) ([]map[string]string, 
 			fmt.Println("error while fetching the group")
 			return nil, fmt.Errorf(err.Error())
 		}
-		if sender_id == group_member_id {
-			continue
-		}
+
 		staff_or_student := services.Find_staff_or_student_by_id(group_member_id)
 		if staff_or_student == "STUDENT" {
 			_, _, member_chatlist = services.Find_dept_from_rollNo(group_member_id)
 		} else if staff_or_student == "STAFF" {
 			_, _, member_chatlist, _ = Find_dept_from_staff_id(group_member_id)
 		}
+
 		member_and_dept[group_member_id] = member_chatlist
 
 		All_group_members = append(All_group_members, member_and_dept) //adding maps with id with department to the All_group_members

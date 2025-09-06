@@ -89,38 +89,65 @@ func AddLastMsgToChatlist_private_chat(senderId string, receiverId string, last_
 	}
 }
 
-// func AddLastMsgToChatlist_group_chat(message models.Message) {
+func AddLastMsgToChatlist_group_chat(message models.Message) {
 
-// 	var (
-// 		receiver_dept string
-// 	)
-// 	dept_from_group := services.Find_dept_from_groupId(message.GroupId)
-// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-// 	defer cancel()
+	var exist bool
+	dept_from_group := services.Find_dept_from_groupId(message.GroupId)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-// 	//to find the groupmembers
-// 	All_group_members, err := Get_all_group_members(message.SenderID, dept_from_group)
-// 	if err != nil {
-// 		fmt.Println("error while getting group members - ", err)
-// 		return
-// 	}
+	//to find the groupmembers
+	All_group_members, err := Get_all_group_members(message.SenderID, dept_from_group)
+	if err != nil {
+		fmt.Println("error while getting group members - ", err)
+		return
+	}
 
-// 	//to add last msg to the sender
-// 	query := fmt.Sprintf(`update %s set last_msg_id = $1 ,last_msg = $2 , created_at = $3  where sender_id = $4 and receiver_id =$5 `, sender_dept)
-// 	_, err := pool.Exec(ctx, query, last_msg_id, content, createdAt, senderId, receiverId)
-// 	if err != nil {
-// 		fmt.Println("error while updating messages to sender's chatlist - ", err)
-// 		return
-// 	}
+	for _, group_member := range All_group_members {
+		for group_member_id, dept_chatlist_table := range group_member {
 
-// 	//to add last msg to the receiver
-// 	query = fmt.Sprintf(`update %s set last_msg_id = $1,last_msg = $2 , created_at = $3  where sender_id = $4 and receiver_id =$5 `, receiver_dept)
-// 	_, err = pool.Exec(ctx, query, last_msg_id, content, createdAt, receiverId, senderId)
-// 	if err != nil {
-// 		fmt.Println("error while updating messages to receiver's chatlist - ", err)
-// 		return
-// 	}
-// }
+			//checking the group is existing on m=everyone chatlist
+			check_query := fmt.Sprintf(`select exists(select 1 from %s where (sender_id = $1 and group_id = $2) )`, dept_chatlist_table)
+			err = pool.QueryRow(ctx, check_query, group_member_id, message.GroupId).Scan(&exist)
+			if !exist {
+
+				//if doesn't exists insert that group into chatlist
+				insert_query := fmt.Sprintf(`insert into %s(sender_id,is_group,group_id,last_msg,last_msg_id,created_at) values($1,$2,$3,$4,$5,$6)`, dept_chatlist_table)
+				_, err := pool.Exec(ctx, insert_query, group_member_id, true, message.GroupId, message.Content, message.GroupId, message.CreatedAt)
+				if err != nil {
+					fmt.Println("error while inserting data to chatlist - ", err)
+					return
+				}
+			} else {
+
+				//if group already exists then update last msg with new one
+				query := fmt.Sprintf(`update %s set last_msg_id = $1 ,last_msg = $2 , created_at = $3  where (sender_id = $4 and group_id = $5)  `, dept_chatlist_table)
+				_, err := pool.Exec(ctx, query, message.ID, message.Content, message.CreatedAt, group_member_id, message.GroupId)
+				if err != nil {
+					fmt.Println("error while updating messages to sender's chatlist - ", err)
+					return
+				}
+			}
+
+		}
+	}
+
+	//to add last msg to the sender
+	// query := fmt.Sprintf(`update %s set last_msg_id = $1 ,last_msg = $2 , created_at = $3  where sender_id = $4 and receiver_id =$5 `, sender_dept)
+	// _, err := pool.Exec(ctx, query, last_msg_id, content, createdAt, senderId, receiverId)
+	// if err != nil {
+	// 	fmt.Println("error while updating messages to sender's chatlist - ", err)
+	// 	return
+	// }
+
+	// //to add last msg to the receiver
+	// query = fmt.Sprintf(`update %s set last_msg_id = $1,last_msg = $2 , created_at = $3  where sender_id = $4 and receiver_id =$5 `, receiver_dept)
+	// _, err = pool.Exec(ctx, query, last_msg_id, content, createdAt, receiverId, senderId)
+	// if err != nil {
+	// 	fmt.Println("error while updating messages to receiver's chatlist - ", err)
+	// 	return
+	// }
+}
 
 // func AddTochatlist(newContact models.ChatlistForLocal, isGroup bool) {
 

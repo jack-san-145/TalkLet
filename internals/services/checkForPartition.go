@@ -129,13 +129,14 @@ func Check_Group_MessagePartition(rdb *redis.Client, pool *pgxpool.Pool, dept st
 		}
 
 		//create index "idx_cs_group_sg_messages_2025-08-12" on "cs_group_messages_2025-08-12" (sender_id,receiver_id);
-		index_sender_groupId := "idx_" + dept + "_group_sg_" + partition_table_name
-		query = fmt.Sprintf(`create index if not exists "%s" on "%s" (sender_id,group_id);`, index_sender_groupId, partition_table_name)
-		_, err = pool.Exec(context.Background(), query)
-		if err != nil {
-			fmt.Println("error while creating index for group partition table - ", err)
-			return
-		}
+
+		// index_sender_groupId := "idx_" + dept + "_group_sg_" + partition_table_name
+		// query = fmt.Sprintf(`create index if not exists "%s" on "%s" (sender_id,group_id);`, index_sender_groupId, partition_table_name)
+		// _, err = pool.Exec(context.Background(), query)
+		// if err != nil {
+		// 	fmt.Println("error while creating index for group partition table - ", err)
+		// 	return
+		// }
 
 		//set the partition status in redis for 30 days
 		err = rdb.Set(context.Background(), redis_group_partition_status, true, time.Hour*30*24).Err()

@@ -6,8 +6,9 @@ import (
 )
 
 func AddNewDepartment(dept_name string) {
-	addStudentTable(dept_name)
-	createChatlist(dept_name)
+	// addStudentTable(dept_name)
+	// createChatlist(dept_name)
+	CreateGroupMessageTable(dept_name)
 }
 
 func addStudentTable(dept_name string) {
@@ -156,7 +157,7 @@ func CreateGroupMessageTable(dept string) {
 	query_for_group_message_table := fmt.Sprintf(`CREATE TABLE %s (
 				msg_id BIGSERIAL ,
 				sender_id VARCHAR(10) NOT NULL DEFAULT '',
-				sender_id VARCHAR(10) NOT NULL DEFAULT '',
+				receiver_id VARCHAR(10) NOT NULL DEFAULT '',
 				group_id VARCHAR(10) NOT NULL DEFAULT '',
 				type TEXT NOT NULL DEFAULT '',
 				content TEXT NOT NULL DEFAULT '',

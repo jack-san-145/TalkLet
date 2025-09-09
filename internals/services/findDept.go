@@ -31,28 +31,28 @@ func Find_dept_from_rollNo(rollNo string) (string, string, string) {
 
 	matches := rollRegex.FindStringSubmatch(rollNo)
 	if len(matches) > 1 {
-		dept = matches[2] // matches = [23ucs145 u cs 145]
+		dept = matches[1] // matches = [ u cs 145]
 		dept_students_table = dept + "_students"
 		dept_chatlist_table = dept + "_chatlist"
 	}
 	return dept, dept_students_table, dept_chatlist_table
 }
 
-func FindDeptChatlistByRollno(rollNo string) string {
-	var (
-		dept                string
-		dept_chatlist_table string
-	)
-	var rollRegex = regexp.MustCompile(`^\d{2}(u|p)(cs|it|ee|ec|mt|bt|ce|me)(\d+)$`)
-	matches := rollRegex.FindStringSubmatch(rollNo)
-	if len(matches) > 1 {
-		dept = matches[2] // matches = [23ucs145 u cs 145]
+// func FindDeptChatlistByRollno(rollNo string) string {
+// 	var (
+// 		dept                string
+// 		dept_chatlist_table string
+// 	)
+// 	var rollRegex = regexp.MustCompile(`^\d{2}(u|p)(cs|it|ee|ec|mt|bt|ce|me)(\d+)$`)
+// 	matches := rollRegex.FindStringSubmatch(rollNo)
+// 	if len(matches) > 1 {
+// 		dept = matches[2] // matches = [23ucs145 u cs 145]
 
-		dept_chatlist_table = dept + "_chatlist"
-	}
-	fmt.Println("matches in chatlist - ", matches)
-	return dept_chatlist_table
-}
+// 		dept_chatlist_table = dept + "_chatlist"
+// 	}
+// 	fmt.Println("matches in chatlist - ", matches)
+// 	return dept_chatlist_table
+// }
 
 // func FindDeptStudentByEmail(email string) string {
 // 	//23ucs145@kamarajengg.edu.in

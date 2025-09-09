@@ -89,7 +89,7 @@ func isPasswordMatching(roll_no string, password string, dept_table string, colu
 	fmt.Println("your password - ", password)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-
+	fmt.Println("dept_table - ", dept_table, " column_name - ", column_name, "roll_no - ", roll_no)
 	query := fmt.Sprintf(`select password from %s where %s = $1`, dept_table, column_name)
 	err := pool.QueryRow(ctx, query, roll_no).Scan(&Db_password)
 	if err == pgx.ErrNoRows {

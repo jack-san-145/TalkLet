@@ -50,7 +50,6 @@ func listen_for_ws_msg(websocketConn *websocket.Conn, senderID string) {
 	var message_from_sender models.Message //this is my message which i want to send to my frd
 	for {
 
-		//receiving message
 		msg_type, msg, err := websocketConn.ReadMessage()
 		msg_time := time.Now().Format("2006-01-02 15:04:05")
 		message_from_sender.CreatedAt = msg_time
@@ -66,9 +65,10 @@ func listen_for_ws_msg(websocketConn *websocket.Conn, senderID string) {
 		}
 
 		if message_from_sender.IsGroup {
-
+			send_this_msg_to_group_chat(&message_from_sender, msg_type) //send ack for sender message
+		} else {
+			send_this_msg_to_private_chat(&message_from_sender, msg_type) //send ack for sender message
 		}
-		send_this_msg_to_private_chat(&message_from_sender, msg_type) //send ack for sender message
 
 	}
 }
@@ -87,7 +87,7 @@ func send_this_msg_to_private_chat(message_from_sender *models.Message, msg_type
 		message_from_sender.Status = "sent"
 	}
 
-	go postgres.AddLastMsgToChatlist_private_chat(message_from_sender.SenderID, message_from_sender.ReceiverID, message_from_sender.ID, message_from_sender.Content, message_from_sender.CreatedAt)
+	go postgres.AddLastMsgToChatlist_private_chat(message_from_sender)
 	msg_sent_by_sender_byte, err := json.Marshal(message_from_sender)
 	if err != nil {
 		fmt.Println("error while marshal ack - ", err)
@@ -153,7 +153,7 @@ func send_this_msg_to_group_chat(message_from_sender *models.Message, msg_type i
 		message_from_sender.Status = "sent"
 	}
 
-	// go postgres.AddLastMsgToChatlist(message_from_sender.SenderID, message_from_sender.ReceiverID, message_from_sender.ID, message_from_sender.Content, message_from_sender.CreatedAt)
+	go postgres.AddLastMsgToChatlist_group_chat(message_from_sender)
 	message_from_sender_byte, err := json.Marshal(message_from_sender)
 	if err != nil {
 		fmt.Println("error while marshal ack - ", err)

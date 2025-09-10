@@ -21,12 +21,17 @@ func Get_ws_Conn(id string) (*websocket.Conn, bool) {
 		is_alive bool
 		val      any
 	)
-	if val, is_alive = ConnMap.Load(id); is_alive {
+	val, is_alive = ConnMap.Load(id)
+	if is_alive {
 		ws_conn = val.(*websocket.Conn)
 
 	} else {
-		fmt.Println("there is no websocket conection for this id - ")
+		fmt.Println("there is no websocket conection for this id - ", id)
 	}
+	ConnMap.Range(func(key, value any) bool {
+		fmt.Println("key - ", key)
+		return true
+	})
 	return ws_conn, is_alive
 }
 

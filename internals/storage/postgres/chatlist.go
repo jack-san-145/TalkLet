@@ -107,12 +107,12 @@ func check_and_addtoChatlist_privateChat(senderId string, receiverId string, con
 func AddLastMsgToChatlist_group_chat(message *models.Message) {
 
 	var exist bool
-	dept_from_group := services.Find_dept_from_groupId(message.GroupId)
+	// dept_from_group := services.Find_dept_from_groupId(message.GroupId)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	//to find the groupmembers
-	All_group_members, err := Get_all_group_members(message.SenderID, dept_from_group)
+	All_group_members, err := Get_all_group_members(message.GroupId, message.SenderDept)
 	if err != nil {
 		fmt.Println("error while getting group members - ", err)
 		return
@@ -120,27 +120,27 @@ func AddLastMsgToChatlist_group_chat(message *models.Message) {
 
 	for _, group_member := range All_group_members {
 		for group_member_id, dept_chatlist_table := range group_member {
-
+			fmt.Printf("dept chatlist table - %v & member - %v ", dept_chatlist_table, group_member_id)
+			fmt.Println("")
 			//checking the group is existing on everyone chatlist
 			check_query := fmt.Sprintf(`select exists(select 1 from %s where sender_id = $1 and group_id = $2 )`, dept_chatlist_table)
 			err = pool.QueryRow(ctx, check_query, group_member_id, message.GroupId).Scan(&exist)
 			if !exist {
-
 				//if doesn't exists insert that group into chatlist
-				insert_query := fmt.Sprintf(`insert into %s(sender_id,is_group,group_id,last_msg,last_msg_id,created_at) values($1,$2,$3,$4,$5,$6)`, dept_chatlist_table)
+				insert_query := fmt.Sprintf(`insert into "%s" (sender_id,is_group,group_id,last_msg,last_msg_id,created_at) values($1,$2,$3,$4,$5,$6)`, dept_chatlist_table)
 				_, err := pool.Exec(ctx, insert_query, group_member_id, true, message.GroupId, message.Content, message.ID, message.CreatedAt)
 				if err != nil {
-					fmt.Println("error while inserting data to chatlist - ", err)
-					return
+					fmt.Println("error while inserting data to group chatlist - ", err)
+					continue
 				}
 			} else {
 
 				//if group already exists then update last msg with new one
-				query := fmt.Sprintf(`update %s set last_msg_id = $1 ,last_msg = $2 , created_at = $3  where (sender_id = $4 and group_id = $5)  `, dept_chatlist_table)
+				query := fmt.Sprintf(`update "%s" set last_msg_id = $1 ,last_msg = $2 , created_at = $3  where (sender_id = $4 and group_id = $5)  `, dept_chatlist_table)
 				_, err := pool.Exec(ctx, query, message.ID, message.Content, message.CreatedAt, group_member_id, message.GroupId)
 				if err != nil {
 					fmt.Println("error while updating messages to sender's chatlist - ", err)
-					return
+					continue
 				}
 			}
 

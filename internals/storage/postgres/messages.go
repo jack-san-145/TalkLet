@@ -68,7 +68,7 @@ func Store_Groupchat_MessagesPostDB(message models.Message) int64 {
 
 	dept := services.Find_dept_from_groupId(message.GroupId) // finding the dept
 	services.Check_Group_MessagePartition(redis_client, pool, dept)
-	table_name := dept + "group_all_messages" //table name varies depends upon departments
+	table_name := dept + "_group_all_messages" //table name varies depends upon departments
 	if message.Type == "text/plain" {
 		query := fmt.Sprintf(`insert into %s(sender_id,group_id,type,content,created_at) values($1,$2,$3,$4,$5) returning msg_id`, table_name)
 		err := pool.QueryRow(ctx, query, message.SenderID, message.GroupId, message.Type, message.Content, message.CreatedAt).Scan(&msgId)

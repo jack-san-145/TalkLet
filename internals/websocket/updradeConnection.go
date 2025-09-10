@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"tet/internals/handlers"
 	"tet/internals/models"
+	"tet/internals/services"
 	"tet/internals/storage/postgres"
 	"time"
 
@@ -28,6 +29,7 @@ func UpgradeToWebsocket(w http.ResponseWriter, r *http.Request) {
 	websocketConn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		fmt.Println("error while upgrade http to websocket - ", err)
+		return
 	}
 	Set_ws_conn(senderID, websocketConn) //store the new ws connection to the ConnMap
 
@@ -37,8 +39,9 @@ func UpgradeToWebsocket(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("id - %v is connected\n", id)
 		return ok
 	})
-	Get_ws_Conn(senderID)
+	// Get_ws_Conn(senderID)
 	defer func() {
+		fmt.Println("yeah deleting the connection")
 		del_ws_conn(senderID) //to delete the ws_connection from the ConnMap
 	}()
 
@@ -145,7 +148,7 @@ func sendMsgTo_receiver_private_chat(message_to_receiver *models.Message, msg_ty
 // function to send ack for sender message to him itself
 func send_this_msg_to_group_chat(message_from_sender *models.Message, msg_type int) {
 	message_from_sender.IsAck = "ack"
-
+	message_from_sender.SenderDept = services.Find_dept_from_groupId(message_from_sender.GroupId)
 	// var temp models.Message
 	if msg_type == 1 { // which is websocket.TextMessage(1)
 		message_from_sender.Type = "text/plain"
@@ -177,8 +180,13 @@ func send_this_msg_to_group_chat(message_from_sender *models.Message, msg_type i
 
 func sendMsgTo_receiver_group_chat(message_to_receiver *models.Message, msg_type int) {
 
-	var Group_members []string
+	// var Group_members []string
 
+	Group_members, err := postgres.Get_all_group_members(message_to_receiver.GroupId, message_to_receiver.SenderDept)
+	if err != nil {
+		fmt.Println("error while get group members - ", err)
+		return
+	}
 	message_to_receiver.IsAck = "not-ack"
 	message_to_receiver_byte, err := json.Marshal(message_to_receiver)
 	if err != nil {
@@ -193,19 +201,21 @@ func sendMsgTo_receiver_group_chat(message_to_receiver *models.Message, msg_type
 	}
 
 	for _, member := range Group_members {
+		for member_id, _ := range member {
+			if member_id == message_to_receiver.SenderID { //to avoid the same message send to that sender
+				continue
+			}
 
-		if member == message_to_receiver.SenderID { //to avoid the same message send to that sender
-			continue
+			receiver, ok := Get_ws_Conn(member_id)
+			if !ok {
+				fmt.Printf("%v goes to offline ! ", member_id)
+				continue
+			}
+			err = receiver.WriteMessage(msg_type, message_to_receiver_byte)
+			if err != nil {
+				fmt.Println("error while sending message_to_receiver - ", err)
+			}
 		}
 
-		receiver_id, ok := Get_ws_Conn(member)
-		if !ok {
-			fmt.Printf("%v goes to offline - ", member)
-			return
-		}
-		err = receiver_id.WriteMessage(msg_type, message_to_receiver_byte)
-		if err != nil {
-			fmt.Println("error while sending message_to_receiver - ", err)
-		}
 	}
 }

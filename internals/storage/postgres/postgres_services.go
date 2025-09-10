@@ -27,18 +27,25 @@ func Find_dept_from_staff_id(staff_id string) (string, string, string, error) {
 	return dept, staff_table, staff_chatlist_table, nil
 }
 
-func Get_all_group_members(sender_id string, dept string) ([]map[string]string, error) {
+func Get_all_group_members(group_id string, dept string) ([]map[string]string, error) {
 	var All_group_members []map[string]string
-
-	group_table_name := dept + "_group_members"
+	fmt.Println("before group_id - ", group_id)
+	fmt.Println("dept - ", dept)
+	group_table_name := dept + "_group_members" // cs_group_members
+	fmt.Println("group_table_name - ", group_table_name)
 	group_members_query := fmt.Sprintf(`select member_id from %s where group_id = $1`, group_table_name)
-	Rows, err := pool.Query(context.Background(), group_members_query)
+	Rows, err := pool.Query(context.Background(), group_members_query, group_id)
+	fmt.Println("after group_id - ", group_id)
 	if err == sql.ErrNoRows {
 		fmt.Println("group is empty ")
 		return nil, fmt.Errorf("group is empty")
+	} else if err != nil {
+		fmt.Println("error while accessing group members - ", err)
+		return nil, fmt.Errorf("err - ", err)
 	}
-
+	fmt.Println("group_members_query - ", group_members_query)
 	for Rows.Next() {
+		fmt.Println("comming inside the loop ")
 		var member_and_dept = make(map[string]string)
 		var (
 			group_member_id string
@@ -61,5 +68,6 @@ func Get_all_group_members(sender_id string, dept string) ([]map[string]string, 
 
 		All_group_members = append(All_group_members, member_and_dept) //adding maps with id with department to the All_group_members
 	}
+	fmt.Println("All_group_members - ", All_group_members)
 	return All_group_members, nil
 }

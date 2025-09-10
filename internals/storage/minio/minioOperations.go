@@ -27,9 +27,12 @@ func UploadFile_private_chats(msg *models.Message) map[string]string {
 		status["upload status"] = "Failure"
 	} else {
 		status["upload status"] = "Successful"
+		GetFile_private_chats(msg) //updated the minio file link at its address itself
+		status["link"] = msg.MetaData.FileURL
 	}
 
 	fmt.Println(" minio key for this file - ", upload_status.Key)
+
 	return status
 }
 

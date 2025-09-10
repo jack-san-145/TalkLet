@@ -58,7 +58,7 @@ func ChatFileUploads(w http.ResponseWriter, r *http.Request) {
 			status := minio.UploadFile_private_chats(&media_msg)
 			WriteJSON(w, r, status)
 		}
-		minio.GetFile_private_chats(&media_msg)
+		// minio.GetFile_private_chats(&media_msg)
 		// fmt.Println("presigned url - ", media_msg.MetaData.FileURL)
 
 	}

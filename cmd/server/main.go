@@ -69,7 +69,7 @@ func main() {
 	router.Post("/talklet/creategroup-with-excel", handlers.GroupCreationByExcel)
 
 	router.Get("/talklet/chat-history/{contact_id}", handlers.LoadPrivateChatMessages)
-	router.Get("/talklet/group-chat-history/{group-id}", handlers.LoadGroupChatMessages)
+	router.Get("/talklet/group-chat-history/{group_id}", handlers.LoadGroupChatMessages)
 	router.Get("/talklet/get-all-chatlist", handlers.Chatlist)
 
 	router.Post("/talklet/create-new-group", handlers.GroupCreation)

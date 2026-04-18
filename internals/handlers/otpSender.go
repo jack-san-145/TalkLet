@@ -27,23 +27,27 @@ func SendOtpHandler_for_students(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("email - ", email)
 	isMatch, _ := regexp.MatchString(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`, email)
 	if !isMatch {
-		w.Write([]byte("<p>Invalid Email ❌</p>"))
+		// w.Write([]byte("<p>Invalid Email ❌</p>"))
+		WriteJSON(w, r, map[string]string{"otp_status": "failed"})
 		return
 	}
 	isGmail := strings.Split(email, "@")
 	if isGmail[1] != "kamarajengg.edu.in" {
-		w.Write([]byte("<p>Invalid Email ❌</p>"))
+		// w.Write([]byte("<p>Invalid Email ❌</p>"))
+		WriteJSON(w, r, map[string]string{"otp_status": "failed"})
 		return
 	}
 
 	if !postgres.ValidateEmail(email, services.FindDeptStudentByEmail(email)) {
-		w.Write([]byte("<p>You have not registered yet ❌</p>"))
+		// w.Write([]byte("<p>You have not registered yet ❌</p>"))
+		WriteJSON(w, r, map[string]string{"otp_status": "You have not registered yet"})
 		return
 	}
 	otp := generateOtp()
 	go sendEmailTo(email, otp)
-	w.Write([]byte("<p>✅ Otp sent to " + email))
+	// w.Write([]byte("<p>✅ Otp sent to " + email))
 
+	WriteJSON(w, r, map[string]string{"otp_status": "success"})
 	redis.Set_OTP_to_redis(email, otp) //store otp to  redis
 
 }
@@ -64,19 +68,20 @@ func SendOtpHandler_for_staffs(w http.ResponseWriter, r *http.Request) {
 	isStaffMail := services.Find_staff_or_student_by_email(email)
 	if isStaffMail != "Staff" {
 		fmt.Println("isStaffMail - ", isStaffMail)
-		w.Write([]byte("<p>You are not a staff ❌</p>"))
+		WriteJSON(w, r, map[string]string{"otp_status": "failed"})
 		return
 	}
 
 	if postgres.ValidateEmail(email, "all_staffs") {
-		w.Write([]byte("<p>You have already registered ❌</p>"))
+		// w.Write([]byte("<p>You have already registered ❌</p>"))
+		WriteJSON(w, r, map[string]string{"otp_status": "You have already registered "})
 		// WriteJSON(w, r, map[string]string{"status": "You have already registered ❌"})
 		return
 	}
 	otp := generateOtp()
 	go sendEmailTo(email, otp)
-	w.Write([]byte("<p>✅ Otp sent to " + email))
-
+	// w.Write([]byte("<p>✅ Otp sent to " + email))
+	WriteJSON(w, r, map[string]string{"otp_status": "success"})
 	redis.Set_OTP_to_redis(email, otp) //set otp to redis
 
 }

@@ -1,31 +1,745 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Talk Let - Login</title>
-  <script src="/Static/js/htmx.min.js"></script>
-  <link rel="stylesheet" href="/Static/css/login.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Talklet - Authentication</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ffff, #1ecea8);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            max-width: 450px;
+            width: 100%;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1ecea8, #17a589);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .role-selector {
+            display: flex;
+            background: #f5f5f5;
+            padding: 8px;
+            margin: 20px 20px 0;
+            border-radius: 10px;
+        }
+
+        .role-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .role-btn.active {
+            background: white;
+            color: #1ecea8;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #1ecea8;
+            box-shadow: 0 0 0 3px rgba(30, 206, 168, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #1ecea8, #17a589);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(30, 206, 168, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .link-btn {
+            background: none;
+            border: none;
+            color: #1ecea8;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: underline;
+            margin-top: 15px;
+            display: block;
+            text-align: center;
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .otp-container {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .otp-container input {
+            flex: 1;
+        }
+
+        .otp-container button {
+            width: auto;
+            padding: 12px 20px;
+            white-space: nowrap;
+        }
+
+        .loading {
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .step-indicator {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-  <div class="login-container">
-    <h1>TalkLet Login</h1>
-    <form hx-post="/talklet/validate-student-login" hx-target="#status">
-      <div class="form-group">
-        
-       
-        <div class="input-with-button">
-            <input type="text" id="roll_no" name="roll_no"  required placeholder="roll number" />
+    <div class="container">
+        <div class="header">
+            <h1>Talklet</h1>
+            <p>Secure Authentication Portal</p>
         </div>
-      </div>
-      <div class="form-group">
-        <input type="password" id="pass" name="password"  required placeholder="Enter your password" />
-      </div>
-      <button class="login-btn" type="submit">Login</button>
-    </form>
-    <hr>
-    <a href="/talklet/serve-register" class="register">Register now</a>
-    <div id="status"></div>
-  </div>
+
+        <div class="role-selector">
+            <button class="role-btn active" onclick="switchRole('student')">Student</button>
+            <button class="role-btn" onclick="switchRole('staff')">Staff</button>
+        </div>
+
+        <div class="content">
+            <div id="message" class="message"></div>
+
+            <!-- STUDENT VIEWS -->
+            <div id="student-container">
+                <!-- Student Login View -->
+                <div id="student-login-view" class="view active">
+                    <h2 style="margin-bottom: 20px; color: #333;">Student Login</h2>
+                    <form id="student-login-form" onsubmit="handleStudentLogin(event)">
+                        <div class="form-group">
+                            <label for="student-roll">Roll Number</label>
+                            <input type="text" id="student-roll" placeholder="e.g., 23ucs145" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="student-password">Password</label>
+                            <input type="password" id="student-password" placeholder="Enter your password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Login</button>
+                    </form>
+                    <button class="link-btn" onclick="showView('student-set-password-view')">First time? Set your password</button>
+                </div>
+
+                <!-- Student Set Password View -->
+                <div id="student-set-password-view" class="view">
+                    <div class="step-indicator">Step 1 of 3: Request OTP</div>
+                    <h2 style="margin-bottom: 20px; color: #333;">Set Password</h2>
+                    <form id="student-otp-request-form" onsubmit="handleStudentOtpRequest(event)">
+                        <div class="form-group">
+                            <label for="student-email-otp">Email Address</label>
+                            <input type="email" id="student-email-otp" placeholder="your.email@kamarajengg.edu.in" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Send OTP</button>
+                    </form>
+                    <button class="link-btn" onclick="showView('student-login-view')">Back to Login</button>
+                </div>
+
+                <!-- Student Verify OTP View -->
+                <div id="student-verify-otp-view" class="view">
+                    <div class="step-indicator">Step 2 of 3: Verify OTP</div>
+                    <h2 style="margin-bottom: 20px; color: #333;">Verify OTP</h2>
+                    <form id="student-verify-otp-form" onsubmit="handleStudentVerifyOtp(event)">
+                        <div class="form-group">
+                            <label for="student-otp">Enter OTP</label>
+                            <input type="text" id="student-otp" placeholder="6-digit OTP" maxlength="6" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Verify OTP</button>
+                    </form>
+                    <button class="link-btn" onclick="showView('student-set-password-view')">Resend OTP</button>
+                </div>
+
+                <!-- Student Set New Password View -->
+                <div id="student-new-password-view" class="view">
+                    <div class="step-indicator">Step 3 of 3: Set Password</div>
+                    <h2 style="margin-bottom: 20px; color: #333;">Create Password</h2>
+                    <form id="student-new-password-form" onsubmit="handleStudentSetPassword(event)">
+                        <div class="form-group">
+                            <label for="student-new-password">New Password</label>
+                            <input type="password" id="student-new-password" placeholder="Enter password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="student-confirm-password">Confirm Password</label>
+                            <input type="password" id="student-confirm-password" placeholder="Confirm password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Set Password</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- STAFF VIEWS -->
+            <div id="staff-container" style="display: none;">
+                <!-- Staff Login View -->
+                <div id="staff-login-view" class="view active">
+                    <h2 style="margin-bottom: 20px; color: #333;">Staff Login</h2>
+                    <form id="staff-login-form" onsubmit="handleStaffLogin(event)">
+                        <div class="form-group">
+                            <label for="staff-id-login">Staff ID</label>
+                            <input type="text" id="staff-id-login" placeholder="e.g., T2505786" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="staff-password-login">Password</label>
+                            <input type="password" id="staff-password-login" placeholder="Enter your password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Login</button>
+                    </form>
+                    <button class="link-btn" onclick="showView('staff-register-otp-view')">New staff? Register here</button>
+                </div>
+
+                <!-- Staff Registration - OTP Request -->
+                <div id="staff-register-otp-view" class="view">
+                    <div class="step-indicator">Step 1 of 4: Request OTP</div>
+                    <h2 style="margin-bottom: 20px; color: #333;">Staff Registration</h2>
+                    <form id="staff-otp-request-form" onsubmit="handleStaffOtpRequest(event)">
+                        <div class="form-group">
+                            <label for="staff-email-otp">Email Address</label>
+                            <input type="email" id="staff-email-otp" placeholder="your.email@kamarajengg.edu.in" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Send OTP</button>
+                    </form>
+                    <button class="link-btn" onclick="showView('staff-login-view')">Back to Login</button>
+                </div>
+
+                <!-- Staff Verify OTP -->
+                <div id="staff-verify-otp-view" class="view">
+                    <div class="step-indicator">Step 2 of 4: Verify OTP</div>
+                    <h2 style="margin-bottom: 20px; color: #333;">Verify OTP</h2>
+                    <form id="staff-verify-otp-form" onsubmit="handleStaffVerifyOtp(event)">
+                        <div class="form-group">
+                            <label for="staff-otp">Enter OTP</label>
+                            <input type="text" id="staff-otp" placeholder="6-digit OTP" maxlength="6" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Verify OTP</button>
+                    </form>
+                    <button class="link-btn" onclick="showView('staff-register-otp-view')">Resend OTP</button>
+                </div>
+
+                <!-- Staff Registration Form -->
+                <div id="staff-register-form-view" class="view">
+                    <div class="step-indicator">Step 3 of 4: Complete Registration</div>
+                    <h2 style="margin-bottom: 20px; color: #333;">Staff Details</h2>
+                    <form id="staff-register-form" onsubmit="handleStaffRegister(event)">
+                        <div class="form-group">
+                            <label for="staff-id">Staff ID</label>
+                            <input type="text" id="staff-id" placeholder="e.g., T2505786" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="staff-name">Full Name</label>
+                            <input type="text" id="staff-name" placeholder="e.g., S.S.VIKASH" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="staff-dob">Date of Birth</label>
+                            <input type="date" id="staff-dob" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="staff-department">Department</label>
+                            <input type="text" id="staff-department" placeholder="e.g., CSE" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="staff-password">Password</label>
+                            <input type="password" id="staff-password" placeholder="Create a strong password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="staff-confirm-password">Confirm Password</label>
+                            <input type="password" id="staff-confirm-password" placeholder="Confirm password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Register</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State management
+        let currentRole = 'student';
+        let studentEmail = '';
+        let studentOtp = '';
+        let staffEmail = '';
+        let staffOtp = '';
+
+        // Role switching
+        function switchRole(role) {
+            currentRole = role;
+            const studentContainer = document.getElementById('student-container');
+            const staffContainer = document.getElementById('staff-container');
+            const roleBtns = document.querySelectorAll('.role-btn');
+
+            roleBtns.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if (role === 'student') {
+                studentContainer.style.display = 'block';
+                staffContainer.style.display = 'none';
+                showView('student-login-view');
+            } else {
+                studentContainer.style.display = 'none';
+                staffContainer.style.display = 'block';
+                showView('staff-login-view');
+            }
+
+            hideMessage();
+        }
+
+        // View management
+        function showView(viewId) {
+            const container = currentRole === 'student' ? 'student-container' : 'staff-container';
+            const views = document.querySelectorAll(`#${container} .view`);
+            views.forEach(view => view.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            hideMessage();
+        }
+
+        // Message handling
+        function showMessage(message, type = 'info') {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = message;
+            messageEl.className = `message ${type} show`;
+        }
+
+        function hideMessage() {
+            const messageEl = document.getElementById('message');
+            messageEl.classList.remove('show');
+        }
+
+        // Loading state
+        function setLoading(btn, isLoading) {
+            if (isLoading) {
+                btn.dataset.originalText = btn.innerHTML;
+                btn.innerHTML = '<span class="spinner"></span>';
+                btn.classList.add('loading');
+            } else {
+                btn.innerHTML = btn.dataset.originalText;
+                btn.classList.remove('loading');
+            }
+        }
+
+        // API calls
+        async function apiCall(endpoint, data) {
+            const formData = new URLSearchParams();
+            Object.keys(data).forEach(key => formData.append(key, data[key]));
+
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: formData
+            });
+
+            return await response.json();
+        }
+
+        // STUDENT HANDLERS
+        async function handleStudentLogin(event) {
+            event.preventDefault();
+            const btn = event.target.querySelector('button[type="submit"]');
+            setLoading(btn, true);
+
+            try {
+                const rollNo = document.getElementById('student-roll').value;
+                const password = document.getElementById('student-password').value;
+
+                const response = await apiCall('/talklet/validate-student-login', {
+                    roll_no: rollNo,
+                    password: password
+                });
+
+                if (response.valid) {
+                    showMessage('Login successful! Redirecting...', 'success');
+                    setTimeout(() => {
+                        // Redirect to student dashboard
+                        window.location.href = '/talklet/serve-index';
+                    }, 1500);
+                } else {
+                    showMessage('Invalid credentials. Please try again.', 'error');
+                }
+            } catch (error) {
+                showMessage('Login failed. Please try again.', 'error');
+            } finally {
+                setLoading(btn, false);
+            }
+        }
+
+        async function handleStudentOtpRequest(event) {
+            event.preventDefault();
+            const btn = event.target.querySelector('button[type="submit"]');
+            setLoading(btn, true);
+
+            try {
+                studentEmail = document.getElementById('student-email-otp').value;
+
+                const response = await apiCall('/talklet/send-otp-student', {
+                    email: studentEmail
+                });
+
+                if (response.otp_status === 'success') {
+                    showMessage('OTP sent successfully! Check your email.', 'success');
+                    setTimeout(() => showView('student-verify-otp-view'), 1500);
+                } else if (response.otp_status === 'You have not registered yet') {
+                    showMessage('You have not been registered yet. Please contact staff.', 'error');
+                } else {
+                    showMessage('Failed to send OTP. Please try again.', 'error');
+                }
+            } catch (error) {
+                showMessage('Failed to send OTP. Please try again.', 'error');
+            } finally {
+                setLoading(btn, false);
+            }
+        }
+
+        async function handleStudentVerifyOtp(event) {
+            event.preventDefault();
+            const btn = event.target.querySelector('button[type="submit"]');
+            setLoading(btn, true);
+
+            try {
+                studentOtp = document.getElementById('student-otp').value;
+
+                const response = await apiCall('/talklet/verify-otp-student', {
+                    email: studentEmail,
+                    otp: studentOtp
+                });
+
+                if (response.otp_valid) {
+                    showMessage('OTP verified! Now set your password.', 'success');
+                    setTimeout(() => showView('student-new-password-view'), 1500);
+                } else {
+                    showMessage('Invalid OTP. Please try again.', 'error');
+                }
+            } catch (error) {
+                showMessage('Verification failed. Please try again.', 'error');
+            } finally {
+                setLoading(btn, false);
+            }
+        }
+
+async function handleStudentSetPassword(event) {
+    event.preventDefault();
+    const btn = event.target.querySelector('button[type="submit"]');
+
+    const newPassword = document.getElementById('student-new-password').value;
+    const confirmPassword = document.getElementById('student-confirm-password').value;
+
+    if (newPassword !== confirmPassword) {
+        showMessage('Passwords do not match!', 'error');
+        return;
+    }
+
+    setLoading(btn, true);
+
+    try {
+        const response = await fetch('/talklet/set-password', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+              email: studentEmail,
+              password: newPassword
+          })
+      });
+
+        const result = await response.json();
+
+        if (result.status === true) {
+            showMessage('Password set successfully! Please login.', 'success');
+
+            setTimeout(() => {
+                showView('student-login-view');
+                document.getElementById('student-roll').value =
+                    studentEmail.split('@')[0];
+            }, 2000);
+
+        } else {
+            showMessage('Failed to set password. Try again.', 'error');
+        }
+
+    } catch (error) {
+        console.error("SET PASSWORD ERROR:", error);
+        showMessage('Server error. Please try again.', 'error');
+    } finally {
+        setLoading(btn, false);
+    }
+}
+
+        // STAFF HANDLERS
+        async function handleStaffLogin(event) {
+            event.preventDefault();
+            const btn = event.target.querySelector('button[type="submit"]');
+            setLoading(btn, true);
+
+            try {
+                const staffId = document.getElementById('staff-id-login').value;
+                const password = document.getElementById('staff-password-login').value;
+
+                const response = await apiCall('/talklet/validate-staff-login', {
+                    staff_id: staffId,
+                    password: password
+                });
+
+                if (response.valid) {
+                    showMessage('Login successful! Redirecting...', 'success');
+                    setTimeout(() => {
+                        // Redirect to staff dashboard
+                        window.location.href = '/talklet/serve-index';
+                    }, 1500);
+                } else {
+                    showMessage('Invalid credentials. Please try again.', 'error');
+                }
+            } catch (error) {
+                showMessage('Login failed. Please try again.', 'error');
+            } finally {
+                setLoading(btn, false);
+            }
+        }
+
+        async function handleStaffOtpRequest(event) {
+            event.preventDefault();
+            const btn = event.target.querySelector('button[type="submit"]');
+            setLoading(btn, true);
+
+            try {
+                staffEmail = document.getElementById('staff-email-otp').value;
+
+                const response = await apiCall('/talklet/send-otp-staff', {
+                    email: staffEmail
+                });
+
+                if (response.otp_status === 'success') {
+                    showMessage('OTP sent successfully! Check your email.', 'success');
+                    setTimeout(() => showView('staff-verify-otp-view'), 1500);
+                } else if (response.otp_status === 'You have already registered') {
+                    showMessage('You have already registered. Please login instead.', 'error');
+                    setTimeout(() => showView('staff-login-view'), 2000);
+                } else {
+                    showMessage('Failed to send OTP. Please try again.', 'error');
+                }
+            } catch (error) {
+                showMessage('Failed to send OTP. Please try again.', 'error');
+            } finally {
+                setLoading(btn, false);
+            }
+        }
+
+        async function handleStaffVerifyOtp(event) {
+            event.preventDefault();
+            const btn = event.target.querySelector('button[type="submit"]');
+            setLoading(btn, true);
+
+            try {
+                staffOtp = document.getElementById('staff-otp').value;
+
+                const response = await apiCall('/talklet/verify-otp-staff', {
+                    email: staffEmail,
+                    otp: staffOtp
+                });
+
+                if (response.otp_valid) {
+                    showMessage('OTP verified! Complete your registration.', 'success');
+                    setTimeout(() => showView('staff-register-form-view'), 1500);
+                } else {
+                    showMessage('Invalid OTP. Please try again.', 'error');
+                }
+            } catch (error) {
+                showMessage('Verification failed. Please try again.', 'error');
+            } finally {
+                setLoading(btn, false);
+            }
+        }
+
+        async function handleStaffRegister(event) {
+            event.preventDefault();
+            const btn = event.target.querySelector('button[type="submit"]');
+
+            const password = document.getElementById('staff-password').value;
+            const confirmPassword = document.getElementById('staff-confirm-password').value;
+
+            if (password !== confirmPassword) {
+                showMessage('Passwords do not match!', 'error');
+                return;
+            }
+
+            setLoading(btn, true);
+
+            try {
+                const data = {
+                    staff_id: document.getElementById('staff-id').value,
+                    name: document.getElementById('staff-name').value,
+                    dob: document.getElementById('staff-dob').value,
+                    email: staffEmail,
+                    password: password,
+                    department: document.getElementById('staff-department').value,
+                    otp: staffOtp
+                };
+
+                const response = await apiCall('/talklet/register-new-staff', data);
+
+                if (response.status === 'success') {
+                    showMessage('Registration successful! Please login.', 'success');
+                    setTimeout(() => {
+                        showView('staff-login-view');
+                        document.getElementById('staff-id-login').value = data.staff_id;
+                    }, 2000);
+                } else if (response.status === 'Invalid OTP') {
+                    showMessage('Invalid OTP. Please try again.', 'error');
+                    showView('staff-verify-otp-view');
+                } else if (response.status === 'You have already registered') {
+                    showMessage('You have already registered. Please login.', 'error');
+                    setTimeout(() => showView('staff-login-view'), 2000);
+                } else if (response.status === 'Department Mismatch') {
+                    showMessage('Department mismatch. Please verify your details.', 'error');
+                } else {
+                    showMessage('Registration failed. Please try again.', 'error');
+                }
+            } catch (error) {
+                showMessage('Registration failed. Please try again.', 'error');
+            } finally {
+                setLoading(btn, false);
+            }
+        }
+    </script>
 </body>
 </html>

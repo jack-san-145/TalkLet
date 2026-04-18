@@ -99,9 +99,13 @@ func isPasswordMatching(roll_no string, password string, dept_table string, colu
 		fmt.Println("error while accessing the db password - ", err)
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(Db_password), []byte(password))
+
 	if err != nil {
+		fmt.Println("error while comparing passwords - ", err)
+		fmt.Println("password mismatch")
 		return false
 	} else {
+		fmt.Print("password matching")
 		return true
 	}
 }

@@ -1,664 +1,1081 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Talk Let</title>
-  <script src="../Static/js/htmx.min.js"></script>
-  <script src="../Static/js/alpine.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>
-  <script src="../Static/js/index.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="../Static/css/index.css"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Talklet - Student Chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ffff, #1ecea8);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        /* LEFT PANEL - Chat List */
+        .chat-list-panel {
+            flex: 0 0 30%;
+            display: flex;
+            flex-direction: column;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .chat-list-header {
+            padding: 25px 20px;
+            background: linear-gradient(135deg, #1ecea8, #17a589);
+            color: white;
+        }
+
+        .chat-list-header h1 {
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            outline: none;
+        }
+
+        .search-bar::placeholder {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .new-chat-btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .new-chat-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .chat-list-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 0;
+        }
+
+        .chat-list-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-list-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-list-container::-webkit-scrollbar-thumb {
+            background: #1ecea8;
+            border-radius: 10px;
+        }
+
+        .chat-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 4px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .chat-item:hover {
+            background: rgba(30, 206, 168, 0.1);
+        }
+
+        .chat-item.active {
+            background: rgba(30, 206, 168, 0.15);
+            border-left-color: #1ecea8;
+        }
+
+        .chat-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1ecea8, #17a589);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .chat-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .chat-name {
+            font-weight: 600;
+            font-size: 15px;
+            color: #333;
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .chat-last-msg {
+            font-size: 13px;
+            color: #666;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .chat-time {
+            font-size: 11px;
+            color: #999;
+            flex-shrink: 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        /* RIGHT PANEL - Chat Area */
+        .chat-area-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 20px 25px;
+            background: linear-gradient(135deg, #1ecea8, #17a589);
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .chat-header-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .chat-header-info h2 {
+            font-size: 18px;
+            margin-bottom: 2px;
+        }
+
+        .chat-header-info p {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .messages-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .messages-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background: #1ecea8;
+            border-radius: 10px;
+        }
+
+        .message-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .message-wrapper.sent {
+            flex-direction: row-reverse;
+        }
+
+        .message-bubble {
+            max-width: 60%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            word-wrap: break-word;
+            position: relative;
+        }
+
+        .message-wrapper.sent .message-bubble {
+            background: linear-gradient(135deg, #1ecea8, #17a589);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-wrapper.received .message-bubble {
+            background: #f0f0f0;
+            color: #333;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-content {
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .message-image {
+            max-width: 100%;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+
+        .message-file-name {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: #999;
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        .message-wrapper.sent .message-time {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .message-input-area {
+            padding: 20px 25px;
+            background: #f8f8f8;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 14px 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .message-input:focus {
+            border-color: #1ecea8;
+            box-shadow: 0 0 0 3px rgba(30, 206, 168, 0.1);
+        }
+
+        .send-btn {
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1ecea8, #17a589);
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(30, 206, 168, 0.3);
+        }
+
+        .send-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            padding: 25px;
+            background: linear-gradient(135deg, #1ecea8, #17a589);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 22px;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.3s;
+        }
+
+        .close-modal:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-search {
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .modal-search input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .modal-search input:focus {
+            border-color: #1ecea8;
+        }
+
+        .contacts-list {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px 0;
+        }
+
+        .contact-item {
+            padding: 15px 25px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .contact-item:hover {
+            background: rgba(30, 206, 168, 0.1);
+        }
+
+        .contact-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1ecea8, #17a589);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .contact-name {
+            font-size: 15px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .contact-roll {
+            font-size: 13px;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(30, 206, 168, 0.2);
+            border-top-color: #1ecea8;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        /* Welcome Screen */
+        .welcome-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #999;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .welcome-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .welcome-screen h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #666;
+        }
+
+        .welcome-screen p {
+            font-size: 14px;
+        }
+
+        /* Load More Button */
+        .load-more-btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            background: rgba(30, 206, 168, 0.1);
+            color: #1ecea8;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+
+        .load-more-btn:hover {
+            background: rgba(30, 206, 168, 0.2);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column;
+                padding: 10px;
+                gap: 10px;
+            }
+
+            .chat-list-panel {
+                flex: 0 0 40%;
+            }
+
+            .chat-area-panel {
+                flex: 1;
+            }
+
+            .message-bubble {
+                max-width: 80%;
+            }
+        }
+
+        /* Date Separator */
+        .date-separator {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .date-separator span {
+            background: #e0e0e0;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
 </head>
 <body>
-  <div id="ui-variables" x-data="{ 
-    chosedOption: 'Home', 
-    IsChat: false, 
-    active_user: {},
-    searchQuery: '',
-    isDarkMode: false,
-    showEmojiPicker: false,
-    showAttachmentMenu: false,
-    showProfileDropdown: false,
-    showSettings: false,
-    showGroupSettings: false,
-    typing: false,
-    onlineStatus: 'online',
-    messageInput: '',
-    selectedMessages: [],
-    replyingTo: null,
-    recordingVoice: false,
-    mediaPreview: null,
-    mediaType: null,
-    nearbyUsers: [],
-    groupList: [],
-    userProfile: {
-      name: 'User Name',
-      phone: '+1 234 567 890',
-      about: 'Hey there! I am using Talk Let',
-      status: 'online',
-      avatar: 'https://i.pravatar.cc/150?u=user-profile'
-    },
-    currentView: 'chats',
-    showMessageOptions: null
-  }" 
-  x-init="
-    $watch('isDarkMode', value => {
-      document.documentElement.style.setProperty('--theme-transition', 'all 0.3s ease');
-      setTimeout(() => {
-        document.documentElement.style.setProperty('--theme-transition', 'none');
-      }, 300);
-    })
-  ">
-    <div id="main-layout" :class="isDarkMode ? 'dark-theme' : 'light-theme'" class="transition-all duration-300">
-      <!-- Left Icon Sidebar -->
-      <div class="left-icons">
-        <div class="app-logo-icon" @click="chosedOption = 'Home'; IsChat = false">
-          <i class="fas fa-comments text-orange-500 text-2xl"></i>
+    <div class="app-container">
+        <!-- LEFT PANEL - Chat List -->
+        <div class="chat-list-panel">
+            <div class="chat-list-header">
+                <h1>Talklet</h1>
+                <input type="text" class="search-bar" id="chatSearchBar" placeholder="Search chats...">
+                <button class="new-chat-btn" onclick="openNewChatModal()">➕ New Chat</button>
+            </div>
+            <div class="chat-list-container" id="chatListContainer">
+                <div class="loading-container">
+                    <div class="spinner"></div>
+                </div>
+            </div>
         </div>
-        
-        <button class="icon-btn" @click="chosedOption = 'Home'; currentView = 'chats'" 
-          :class="{ 'active-btn': chosedOption === 'Home' }" x-tooltip="Home">
-          <i class="fas fa-home"></i>
-        </button>
-        
-        <button class="icon-btn" @click="chosedOption = 'location'" 
-          :class="{ 'active-btn': chosedOption === 'location' }" x-tooltip="Nearby">
-          <i class="fas fa-map-marker-alt"></i>
-        </button>
-        
-        <button class="icon-btn" @click="chosedOption = 'Home'; currentView = 'groups'" 
-          :class="{ 'active-btn': currentView === 'groups' }" x-tooltip="Groups">
-          <i class="fas fa-users"></i>
-        </button>
-        
-        <button class="icon-btn" @click="chosedOption = 'settings'; showSettings = true" 
-          :class="{ 'active-btn': chosedOption === 'settings' }" x-tooltip="Settings">
-          <i class="fas fa-cog"></i>
-        </button>
-        
-        <div class="profile-container relative mt-auto">
-          <img :src="userProfile.avatar" class="profile-pic cursor-pointer" 
-               @click="showProfileDropdown = !showProfileDropdown"/>
-          <div class="online-status" :class="onlineStatus"></div>
-          
-          <div class="profile-dropdown" x-show="showProfileDropdown" 
-               @click.outside="showProfileDropdown = false" 
-               x-transition:enter="transition ease-out duration-100"
-               x-transition:enter-start="transform opacity-0 scale-95"
-               x-transition:enter-end="transform opacity-100 scale-100"
-               x-transition:leave="transition ease-in duration-75"
-               x-transition:leave-start="transform opacity-100 scale-100"
-               x-transition:leave-end="transform opacity-0 scale-95">
-            <div class="dropdown-item" @click="chosedOption = 'settings'; showSettings = true">
-              <i class="fas fa-user"></i> Profile
+
+        <!-- RIGHT PANEL - Chat Area -->
+        <div class="chat-area-panel">
+            <div id="welcomeScreen" class="welcome-screen">
+                <div class="welcome-icon">💬</div>
+                <h2>Welcome to Talklet</h2>
+                <p>Select a chat to start messaging</p>
             </div>
-            <div class="dropdown-item" @click="isDarkMode = !isDarkMode">
-              <i class="fas" :class="isDarkMode ? 'fa-sun' : 'fa-moon'"></i> 
-              <span x-text="isDarkMode ? 'Light Mode' : 'Dark Mode'"></span>
+            <div id="chatArea" style="display: none; height: 100%; display: flex; flex-direction: column;">
+                <div class="chat-header" id="chatHeader">
+                    <div class="chat-header-avatar" id="chatHeaderAvatar"></div>
+                    <div class="chat-header-info">
+                        <h2 id="chatHeaderName"></h2>
+                        <p id="chatHeaderStatus">Online</p>
+                    </div>
+                </div>
+                <div class="messages-container" id="messagesContainer">
+                    <!-- Messages will be rendered here -->
+                </div>
+                <div class="message-input-area">
+                    <input type="text" class="message-input" id="messageInput" placeholder="Type a message...">
+                    <button class="send-btn" onclick="sendMessage()">➤</button>
+                </div>
             </div>
-            <div class="dropdown-item" @click="logout()">
-              <i class="fas fa-sign-out-alt"></i> Logout
-            </div>
-          </div>
         </div>
-      </div>
-
-      <!-- Main Sidebar Content -->
-      <template x-if="chosedOption == 'Home'">
-        <aside class="sidebar">
-          <header class="sidebar-header">
-            <h1 class="app-name">Talk Let</h1>
-            <div class="search-container">
-              <i class="fas fa-search"></i>
-              <input x-model="searchQuery" type="text" placeholder="Search chats..." 
-                     class="search-input" @input="typing = true" @blur="typing = false"/>
-              <div class="search-clear" x-show="searchQuery" @click="searchQuery = ''">
-                <i class="fas fa-times"></i>
-              </div>
-            </div>
-          </header>
-
-          <div class="view-switcher">
-            <button class="view-btn" :class="{ 'active-view': currentView === 'chats' }" 
-                    @click="currentView = 'chats'">Chats</button>
-            <button class="view-btn" :class="{ 'active-view': currentView === 'groups' }" 
-                    @click="currentView = 'groups'">Groups</button>
-          </div>
-
-          <template x-if="currentView === 'chats'">
-            <ul class="chat-list">
-              <template x-for="(contact, index) in $store.globalVar.chatlist.filter(c => 
-                searchQuery === '' || 
-                c.ContactName.toLowerCase().includes(searchQuery.toLowerCase()))" 
-                :key="contact.contact_id">
-                <li :id="contact.contact_id " 
-                    :class="$store.globalVar.active_chat == contact.contact_id ? 'chat-item active' : 'chat-item'"
-                    @click="activeChatfunc(contact)">
-                  <div class="avatar-container">
-                    <img :src="" + contact.contact_id alt="Profile"/>
-                    <div class="status-indicator" :class="contact.online ? 'online' : 'offline'"></div>
-                  </div>
-                  <div class="chat-info">
-                    <div class="chat-info-top">
-                      <h4 x-text="contact.contact_name">hello world</h4>
-                      <span class="time" x-text="contact.created_at"></span>
-                    </div>
-                    <div class="chat-info-bottom">
-                      <p class="truncate" x-text="contact.last_msg"></p>
-                      <template x-if="contact.unreadCount > 0">
-                        <span class="unread-badge" x-text="contact.unreadCount"></span>
-                      </template>
-                    </div>
-                  </div>
-                </li>
-              </template>
-            </ul>
-          </template>
-
-          <template x-if="currentView === 'groups'">
-            <ul class="chat-list">
-              <template x-for="(group, index) in groupList" :key="group.id">
-                <li class="chat-item group-item" @click="openGroupChat(group)">
-                  <div class="avatar-container group-avatar">
-                    <i class="fas fa-users"></i>
-                  </div>
-                  <div class="chat-info">
-                    <div class="chat-info-top">
-                      <h4 x-text="group.name"></h4>
-                      <span class="time" x-text="group.lastActivity"></span>
-                    </div>
-                    <div class="chat-info-bottom">
-                      <p class="truncate" x-text="group.lastMessage"></p>
-                      <template x-if="group.unreadCount > 0">
-                        <span class="unread-badge" x-text="group.unreadCount"></span>
-                      </template>
-                    </div>
-                  </div>
-                </li>
-              </template>
-              <li class="new-group-item" @click="showGroupSettings = true">
-                <div class="avatar-container new-group-avatar">
-                  <i class="fas fa-plus"></i>
-                </div>
-                <div class="chat-info">
-                  <h4>New Group</h4>
-                </div>
-              </li>
-            </ul>
-          </template>
-        </aside>
-      </template>
-      
-      <!-- Nearby Users Section -->
-      <template x-if="chosedOption == 'location'">
-        <aside class="sidebar">
-          <header class="sidebar-header">
-            <h3>People Nearby</h3>
-            <button class="icon-btn refresh-btn" @click="fetchNearbyUsers()">
-              <i class="fas fa-sync-alt"></i>
-            </button>
-          </header>
-          <div class="location-content">
-            <div class="map-placeholder">
-              <i class="fas fa-map-marked-alt"></i>
-              <p>Discover  around you</p>
-            </div>
-            <ul class="nearby-users">
-              <template x-for="user in nearbyUsers" :key="user.id">
-                <li class="nearby-user">
-                  <div class="avatar-container">
-                    <img :src="'https://i.pravatar.cc/40?u=' + user.id" alt="Profile"/>
-                    <div class="distance-indicator" x-text="user.distance + 'km'"></div>
-                  </div>
-                  <div class="user-info">
-                    <h4 x-text="user.name"></h4>
-                    <p>Common interests: <span x-text="user.interests"></span></p>
-                  </div>
-                  <button class="connect-btn" @click="sendChatRequest(user)">
-                    <span x-text="user.requestSent ? 'Request Sent' : 'Connect'"></span>
-                  </button>
-                </li>
-              </template>
-            </ul>
-          </div>
-        </aside>
-      </template>
-
-      <!-- Settings Section -->
-      <template x-if="chosedOption == 'settings' && showSettings">
-        <aside class="sidebar settings-sidebar">
-          <header class="sidebar-header">
-            <button class="back-btn" @click="showSettings = false; chosedOption = 'Home'">
-              <i class="fas fa-arrow-left"></i>
-            </button>
-            <h3>Settings</h3>
-          </header>
-          
-          <div class="settings-profile">
-            <div class="profile-avatar-container">
-              <img :src="userProfile.avatar" alt="Profile" class="settings-avatar"/>
-              <button class="edit-avatar-btn">
-                <i class="fas fa-camera"></i>
-              </button>
-            </div>
-            <h2 x-text="userProfile.name"></h2>
-            <p x-text="userProfile.about"></p>
-          </div>
-          
-          <ul class="settings-menu">
-            <li class="settings-item" @click="openProfileSettings()">
-              <div class="settings-icon">
-                <i class="fas fa-user"></i>
-              </div>
-              <div class="settings-details">
-                <h4>Account</h4>
-                <p>Privacy, security, change number</p>
-              </div>
-              <i class="fas fa-chevron-right"></i>
-            </li>
-            <li class="settings-item">
-              <div class="settings-icon">
-                <i class="fas fa-lock"></i>
-              </div>
-              <div class="settings-details">
-                <h4>Privacy</h4>
-                <p>Block contacts, disappearing messages</p>
-              </div>
-              <i class="fas fa-chevron-right"></i>
-            </li>
-            <li class="settings-item">
-              <div class="settings-icon">
-                <i class="fas fa-moon"></i>
-              </div>
-              <div class="settings-details">
-                <h4>Theme</h4>
-                <p x-text="isDarkMode ? 'Dark' : 'Light'"></p>
-              </div>
-              <button @click="isDarkMode = !isDarkMode" class="theme-toggle">
-                <div class="toggle-switch" :class="{ 'dark': isDarkMode, 'light': !isDarkMode }">
-                  <div class="toggle-knob" :class="{ 'dark': isDarkMode, 'light': !isDarkMode }"></div>
-                </div>
-              </button>
-            </li>
-            <li class="settings-item">
-              <div class="settings-icon">
-                <i class="fas fa-bell"></i>
-              </div>
-              <div class="settings-details">
-                <h4>Notifications</h4>
-                <p>Message, group & call tones</p>
-              </div>
-              <i class="fas fa-chevron-right"></i>
-            </li>
-            <li class="settings-item" @click="logout()">
-              <div class="settings-icon text-red-500">
-                <i class="fas fa-sign-out-alt"></i>
-              </div>
-              <div class="settings-details">
-                <h4 class="text-red-500">Logout</h4>
-              </div>
-            </li>
-          </ul>
-        </aside>
-      </template>
-
-      <!-- Group Creation Modal -->
-      <div class="modal-overlay" x-show="showGroupSettings" @click.away="showGroupSettings = false">
-        <div class="group-creation-modal" 
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100 scale-100"
-             x-transition:leave-end="opacity-0 scale-95">
-          <h3>Create New Group</h3>
-          <div class="group-avatar-selector">
-            <div class="group-avatar-preview">
-              <i class="fas fa-users"></i>
-            </div>
-            <button class="change-avatar-btn">
-              <i class="fas fa-camera"></i>
-            </button>
-          </div>
-          <div id="file-section">
-            <input type="text" placeholder="Group name" class="group-name-input"/>
-            <label>uplaod file to create group</label><br><br>
-            <input type="file" id="excel-sheet" accept=".xlsx"><br><br>
-            <button class="create-btn" onclick="validateFile()">Create Group</button>
-          </div>
-           <h3>Or</h3>
-          <div class="group-members-selection">
-            <h4>Add Participants</h4>
-         
-            <ul class="members-list">
-              <template x-for="contact in $store.globalVar.chatlist" :key="contact.contact_id">
-                <li class="member-item">
-                  <div class="member-avatar">
-                    <img :src="'https://i.pravatar.cc/40?u=' + contact.contact_id" alt="Profile"/>
-                  </div>
-                  <span x-text="contact.contact_name"></span>
-                  <input type="checkbox" class="member-checkbox"/>
-                </li>
-              </template>
-            </ul>
-          </div>
-          <div class="modal-actions">
-            <button class="cancel-btn" @click="showGroupSettings = false">Cancel</button>
-            <button class="create-btn">Create Group</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Chat Section -->
-      <template x-if="IsChat">
-        <main class="chat-section">
-          <header class="chat-header">
-            <div class="chat-header-left">
-              <button class="back-btn" @click="IsChat = false">
-                <i class="fas fa-arrow-left"></i>
-              </button>
-              <div class="avatar-container" @click="viewUserProfile(active_user)">
-                <img :src="'https://i.pravatar.cc/40?u=' + active_user.contact_id" alt="Profile"/>
-                <div class="status-indicator" :class="active_user.online ? 'online' : 'offline'"></div>
-              </div>
-              <div class="chat-user-info" @click="viewUserProfile(active_user)">
-                <h3 x-text="active_user.contact_name"></h3>
-                <p x-text="typing ? 'typing...' : (active_user.online ? 'online' : 'last seen ' + active_user.lastSeen)"></p>
-              </div>
-            </div>
-            <div class="chat-header-actions">
-              <button class="icon-btn" @click="initiateCall('audio')">
-                <i class="fas fa-phone"></i>
-              </button>
-              <button class="icon-btn" @click="initiateCall('video')">
-                <i class="fas fa-video"></i>
-              </button>
-              <div class="relative">
-                <button class="icon-btn more-options" @click="showMessageOptions = showMessageOptions === 'header' ? null : 'header'">
-                  <i class="fas fa-ellipsis-v"></i>
-                </button>
-                <div class="options-menu" x-show="showMessageOptions === 'header'" @click.outside="showMessageOptions = null">
-                  <button @click="viewUserProfile(active_user)">
-                    <i class="fas fa-user"></i> View Profile
-                  </button>
-                  <button>
-                    <i class="fas fa-bell-slash"></i> Mute Notifications
-                  </button>
-                  <button @click="clearChat(active_user.contact_id)">
-                    <i class="fas fa-trash"></i> Clear Chat
-                  </button>
-                  <button @click="deleteChat(active_user.contact_id)">
-                    <i class="fas fa-user-times"></i> Delete Contact
-                  </button>
-                  <button @click="isDarkMode = !isDarkMode">
-                    <i class="fas" :class="isDarkMode ? 'fa-sun' : 'fa-moon'"></i>
-                    <span x-text="isDarkMode ? 'Light Mode' : 'Dark Mode'"></span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </header>
-
-
-
-
-
-
-
-
-
-          
-         <div id="chat-messages" @scroll="handleScroll">
-  <template x-for="(day, dayIndex) in active_user.messagesByDay" :key="dayIndex">
-    <div class="date-divider">
-      <span x-text="day.date"></span>
     </div>
-   
-    <template x-for="(message, msgIndex) in day.messages" :key="msgIndex">
-      <!-- Changed to single message div with your classes -->
-      <div class="message" 
-           :class="{ 'you': message.sender === 'me', 'friend': message.sender !== 'me' }"
-           @contextmenu.prevent="handleMessageRightClick($event, message)">
-        
-        <!-- Message content container -->
-        <div class="message-content">
-          <!-- Reply preview -->
-          <template x-if="replyingTo && replyingTo.id === message.id">
-            <div class="reply-preview">
-              <div class="reply-sender" x-text="message.sender === 'me' ? 'You' : active_user.contact_name"></div>
-              <div class="reply-content">
-                <template x-if="message.type === 'text'">
-                  <span x-text="message.content"></span>
-                </template>
-                <template x-if="message.type === 'image'">
-                  <span><i class="fas fa-image"></i> Photo</span>
-                </template>
-                <template x-if="message.type === 'document'">
-                  <span><i class="fas fa-file"></i> Document</span>
-                </template>
-              </div>
+
+    <!-- New Chat Modal -->
+    <div class="modal" id="newChatModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>New Chat</h2>
+                <button class="close-modal" onclick="closeNewChatModal()">×</button>
             </div>
-          </template>
-          
-          <!-- Text message -->
-          <template x-if="message.type === 'text'">
-            <span class="text" x-text="message.content"></span>
-          </template>
-          
-          <!-- Image message -->
-          <template x-if="message.type === 'image'">
-            <img :src="message.content" class="message-image" @click="openMediaViewer(message.content, 'image')"/>
-          </template>
-          
-          <!-- Document message -->
-          <template x-if="message.type === 'document'">
-            <div class="document-message">
-              <i class="fas fa-file-pdf"></i>
-              <div class="document-info">
-                <span class="doc-name" x-text="message.fileName"></span>
-                <span class="doc-size" x-text="formatFileSize(message.fileSize)"></span>
-              </div>
-              <a :href="message.content" download class="download-btn">
-                <i class="fas fa-download"></i>
-              </a>
+            <div class="modal-search">
+                <input type="text" id="contactSearchBar" placeholder="Search contacts...">
             </div>
-          </template>
-          
-          <!-- Timestamp and status -->
-          <span :class="message.sender === 'me' ? 'msg-you-time' : 'msg-frd-time'">
-            <span x-text="message.time"></span>
-            <template x-if="message.sender === 'me'">
-              <i class="fas fa-check-double" :class="{ 'seen': message.seen }"></i>
-            </template>
-          </span>
-        </div>
-        
-        <!-- Message options menu -->
-        <div class="message-options" x-show="showMessageOptions === message.id">
-          <button @click="replyToMessage(message)">
-            <i class="fas fa-reply"></i> Reply
-          </button>
-          <button @click="copyMessage(message)">
-            <i class="fas fa-copy"></i> Copy
-          </button>
-          <template x-if="message.sender === 'me'">
-            <button @click="unsendMessage(message)">
-              <i class="fas fa-trash"></i> Unsend
-            </button>
-          </template>
-          <template x-if="message.sender !== 'me'">
-            <button @click="deleteMessage(message)">
-              <i class="fas fa-trash"></i> Delete
-            </button>
-          </template>
-          <button @click="forwardMessage(message)">
-            <i class="fas fa-share"></i> Forward
-          </button>
-        </div>
-      </div>
-          </div>
-    </template>
-  </template>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-          <div class="chat-input-bar">
-  <button class="icon-btn attachment-btn" @click="showAttachmentMenu = !showAttachmentMenu">
-    <i class="fas fa-plus"></i>
-  </button>
-  
-  <div class="attachment-menu" x-show="showAttachmentMenu" 
-       x-transition:enter="transition ease-out duration-100"
-       x-transition:enter-start="transform opacity-0 scale-95"
-       x-transition:enter-end="transform opacity-100 scale-100"
-       x-transition:leave="transition ease-in duration-75"
-       x-transition:leave-start="transform opacity-100 scale-100"
-       x-transition:leave-end="transform opacity-0 scale-95"
-       @click.outside="showAttachmentMenu = false">
-    <button @click="attachFile('image')">
-      <i class="fas fa-image"></i>
-      <span>Photo & Video</span>
-    </button>
-    <button @click="attachFile('camera')">
-      <i class="fas fa-camera"></i>
-      <span>Camera</span>
-    </button>
-    <button @click="attachFile('document')">
-      <i class="fas fa-file"></i>
-      <span>Document</span>
-    </button>
-    <button @click="attachFile('location')">
-      <i class="fas fa-map-marker-alt"></i>
-      <span>Location</span>
-    </button>
-    <button @click="attachFile('contact')">
-      <i class="fas fa-user"></i>
-      <span>Contact</span>
-    </button>
-  </div>
-  
-  <div class="input-container">
-    <input id="input-msg" required type="text" placeholder="Type a message..." 
-           x-model="messageInput" @input="listenInput()"/>
-    
-    <button class="icon-btn emoji-btn" @click="showEmojiPicker = !showEmojiPicker">
-      <i class="far fa-smile"></i>
-    </button>
-  </div>
-  
-  <template x-if="messageInput">
-    <button class="send-btn" @click="sendThisMSg()">
-      <i class="fas fa-paper-plane"></i>
-    </button>
-  </template>
-  <template x-if="!messageInput">
-    <button class="voice-btn" 
-            @mousedown="startRecording()" 
-            @mouseup="stopRecording()">
-      <i class="fas fa-microphone"></i>
-    </button>
-  </template>
-</div>
-        </main>
-      </template>
-      
-      <!-- Welcome Screen -->
-      <template x-if="!IsChat">
-        <div class="welcome-screen">
-          <div class="welcome-content">
-            <div class="app-icon">
-              <i class="fas fa-comments"></i>
+            <div class="contacts-list" id="contactsList">
+                <div class="loading-container">
+                    <div class="spinner"></div>
+                </div>
             </div>
-            <h1>Talk Let</h1>
-            <p>Connect with friends and family securely</p>
-            <button class="start-chatting-btn" @click="chosedOption = 'Home'; currentView = 'chats'">
-              Start Chatting
-            </button>
-          </div>
         </div>
-      </template>
     </div>
-  </div>
+
+    <script>
+        // Application State
+        let currentUserId = localStorage.getItem('currentUserId') || '23ucs145'; // Replace with actual login user
+        let activeContactId = null;
+        let chatList = [];
+        let allContacts = [];
+        let socket = null;
+        let offset = 0;
+        let isLoadingMore = false;
+        let currentChatMessages = [];
+
+        // Initialize Application
+        function init() {
+            connectWebSocket();
+            loadChatList();
+            setupEventListeners();
+        }
+
+        // Setup Event Listeners
+        function setupEventListeners() {
+            // Message input Enter key
+            document.getElementById('messageInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+
+            // Chat search
+            document.getElementById('chatSearchBar').addEventListener('input', function(e) {
+                filterChatList(e.target.value);
+            });
+
+            // Contact search
+            document.getElementById('contactSearchBar').addEventListener('input', function(e) {
+                filterContacts(e.target.value);
+            });
+
+            // Messages scroll for pagination
+            document.getElementById('messagesContainer').addEventListener('scroll', function(e) {
+                if (e.target.scrollTop === 0 && !isLoadingMore && activeContactId) {
+                    loadMoreMessages();
+                }
+            });
+        }
+
+        // WebSocket Connection
+        function connectWebSocket() {
+            socket = new WebSocket('ws://localhost:8989/talklet/ws');
+
+            socket.onopen = function() {
+                console.log('WebSocket connected');
+            };
+
+            socket.onmessage = function(event) {
+                const message = JSON.parse(event.data);
+                handleIncomingMessage(message);
+            };
+
+            socket.onerror = function(error) {
+                console.error('WebSocket error:', error);
+            };
+
+            socket.onclose = function() {
+                console.log('WebSocket disconnected. Reconnecting...');
+                setTimeout(connectWebSocket, 3000);
+            };
+        }
+
+        // Load Chat List
+        async function loadChatList() {
+            try {
+                const response = await fetch('http://localhost:8989/talklet/get-all-chatlist');
+                chatList = await response.json();
+                renderChatList(chatList);
+
+                // Auto-open first chat
+                if (chatList.length > 0) {
+                    openChat(chatList[0].contact_id, chatList[0].contact_name);
+                }
+            } catch (error) {
+                console.error('Error loading chat list:', error);
+                document.getElementById('chatListContainer').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <p>No chats yet</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Render Chat List
+        function renderChatList(chats) {
+            const container = document.getElementById('chatListContainer');
+            
+            if (chats.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <p>No chats yet</p>
+                        <p style="font-size: 12px; margin-top: 10px;">Start a new conversation</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = chats.map(chat => {
+                const name = chat.contact_name || chat.group_name || 'Unknown';
+                const lastMsg = chat.last_msg || 'No messages yet';
+                const time = formatTime(chat.created_at);
+                const avatar = getInitials(name);
+                const isActive = chat.contact_id === activeContactId;
+
+                return `
+                    <div class="chat-item ${isActive ? 'active' : ''}" onclick="openChat('${chat.contact_id}', '${name}')">
+                        <div class="chat-avatar">${avatar}</div>
+                        <div class="chat-info">
+                            <div class="chat-name">${name}</div>
+                            <div class="chat-last-msg">${lastMsg}</div>
+                        </div>
+                        <div class="chat-time">${time}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Filter Chat List
+        function filterChatList(query) {
+            const filtered = chatList.filter(chat => {
+                const name = chat.contact_name || chat.group_name || '';
+                return name.toLowerCase().includes(query.toLowerCase());
+            });
+            renderChatList(filtered);
+        }
+
+        // Open Chat
+        async function openChat(contactId, contactName) {
+            activeContactId = contactId;
+            offset = 0;
+            currentChatMessages = [];
+
+            // Update UI
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('chatArea').style.display = 'flex';
+            document.getElementById('chatHeaderName').textContent = contactName;
+            document.getElementById('chatHeaderAvatar').textContent = getInitials(contactName);
+
+            // Update active state in chat list
+            renderChatList(chatList);
+
+            // Load messages
+            await loadChatHistory(contactId);
+        }
+
+        // Load Chat History
+        async function loadChatHistory(contactId) {
+            try {
+                const response = await fetch(`http://localhost:8989/talklet/chat-history/${contactId}?limit=60&offset=${offset}`);
+                const messages = await response.json();
+                
+                currentChatMessages = [...messages.reverse(), ...currentChatMessages];
+                renderMessages(currentChatMessages);
+                
+                // Scroll to bottom on initial load
+                if (offset === 0) {
+                    scrollToBottom();
+                }
+            } catch (error) {
+                console.error('Error loading chat history:', error);
+                document.getElementById('messagesContainer').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">💬</div>
+                        <p>No messages yet</p>
+                        <p style="font-size: 12px; margin-top: 10px;">Start the conversation</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Load More Messages (Pagination)
+        async function loadMoreMessages() {
+            if (isLoadingMore) return;
+            
+            isLoadingMore = true;
+            const container = document.getElementById('messagesContainer');
+            const scrollHeight = container.scrollHeight;
+            
+            offset += 60;
+            
+            try {
+                const response = await fetch(`http://localhost:8989/talklet/chat-history/${activeContactId}?limit=60&offset=${offset}`);
+                const messages = await response.json();
+                
+                if (messages.length > 0) {
+                    currentChatMessages = [...messages.reverse(), ...currentChatMessages];
+                    renderMessages(currentChatMessages);
+                    
+                    // Maintain scroll position
+                    container.scrollTop = container.scrollHeight - scrollHeight;
+                }
+            } catch (error) {
+                console.error('Error loading more messages:', error);
+            } finally {
+                isLoadingMore = false;
+            }
+        }
+
+        // Render Messages
+        function renderMessages(messages) {
+            const container = document.getElementById('messagesContainer');
+            
+            if (messages.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">💬</div>
+                        <p>No messages yet</p>
+                        <p style="font-size: 12px; margin-top: 10px;">Start the conversation</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = messages.map((msg, index) => {
+                const isSent = msg.sender_id === currentUserId;
+                const time = formatMessageTime(msg.created_at);
+                
+                let content = '';
+                if (msg.type === 'text/plain') {
+                    content = `<div class="message-content">${escapeHtml(msg.content)}</div>`;
+                } else if (msg.type === 'media' && msg.meta_data) {
+                    const isImage = msg.meta_data.mime_type && msg.meta_data.mime_type.startsWith('image/');
+                    if (isImage) {
+                        content = `
+                            <img src="${msg.meta_data.file_url}" alt="${msg.meta_data.file_name}" class="message-image">
+                            <div class="message-file-name">${msg.meta_data.file_name}</div>
+                        `;
+                    } else {
+                        content = `
+                            <div class="message-content">📎 ${msg.meta_data.file_name}</div>
+                        `;
+                    }
+                }
+
+                return `
+                    <div class="message-wrapper ${isSent ? 'sent' : 'received'}">
+                        <div class="message-bubble">
+                            ${content}
+                            <div class="message-time">${time}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Send Message
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const content = input.value.trim();
+
+            if (!content || !activeContactId || !socket) return;
+
+            const message = {
+                receiver_id: activeContactId,
+                content: content,
+                type: 'text/plain'
+            };
+
+            // Send via WebSocket
+            socket.send(JSON.stringify(message));
+
+            // Optimistic update
+            const localMessage = {
+                msg_id: Date.now().toString(),
+                sender_id: currentUserId,
+                receiver_id: activeContactId,
+                type: 'text/plain',
+                content: content,
+                created_at: new Date().toISOString()
+            };
+
+            currentChatMessages.push(localMessage);
+            renderMessages(currentChatMessages);
+            scrollToBottom();
+
+            // Clear input
+            input.value = '';
+
+            // Update chat list
+            updateChatListPreview(activeContactId, content);
+        }
+
+        // Handle Incoming Message
+        function handleIncomingMessage(message) {
+            // Update chat list preview
+            updateChatListPreview(message.sender_id, message.content);
+
+            // If message is for active chat, append it
+            if (message.sender_id === activeContactId || message.receiver_id === activeContactId) {
+                currentChatMessages.push(message);
+                renderMessages(currentChatMessages);
+                scrollToBottom();
+            }
+        }
+
+        // Update Chat List Preview
+        function updateChatListPreview(contactId, lastMsg) {
+            const chatIndex = chatList.findIndex(chat => chat.contact_id === contactId);
+            
+            if (chatIndex !== -1) {
+                // Update existing chat
+                chatList[chatIndex].last_msg = lastMsg;
+                chatList[chatIndex].created_at = new Date().toISOString();
+                
+                // Move to top
+                const chat = chatList.splice(chatIndex, 1)[0];
+                chatList.unshift(chat);
+            } else {
+                // New chat - reload chat list
+                loadChatList();
+                return;
+            }
+
+            renderChatList(chatList);
+        }
+
+        // New Chat Modal Functions
+        function openNewChatModal() {
+            document.getElementById('newChatModal').classList.add('show');
+            loadAllContacts();
+        }
+
+        function closeNewChatModal() {
+            document.getElementById('newChatModal').classList.remove('show');
+        }
+
+        async function loadAllContacts() {
+            try {
+                const response = await fetch('http://localhost:8989/talklet/get-all-contacts');
+                allContacts = await response.json();
+                renderContacts(allContacts);
+            } catch (error) {
+                console.error('Error loading contacts:', error);
+                document.getElementById('contactsList').innerHTML = `
+                    <div class="empty-state">
+                        <p>Failed to load contacts</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderContacts(contacts) {
+            const container = document.getElementById('contactsList');
+            
+            if (contacts.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">👥</div>
+                        <p>No contacts found</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = contacts.map(contact => {
+                const avatar = getInitials(contact.name);
+                return `
+                    <div class="contact-item" onclick="startNewChat('${contact.roll_no}', '${contact.name}')">
+                        <div class="contact-avatar">${avatar}</div>
+                        <div>
+                            <div class="contact-name">${contact.name}</div>
+                            <div class="contact-roll">${contact.roll_no}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterContacts(query) {
+            const filtered = allContacts.filter(contact => {
+                return contact.name.toLowerCase().includes(query.toLowerCase()) ||
+                       contact.roll_no.toLowerCase().includes(query.toLowerCase());
+            });
+            renderContacts(filtered);
+        }
+
+        function startNewChat(rollNo, name) {
+            closeNewChatModal();
+            openChat(rollNo, name);
+        }
+
+        // Utility Functions
+        function getInitials(name) {
+            if (!name) return '?';
+            const parts = name.trim().split(' ');
+            if (parts.length >= 2) {
+                return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+            }
+            return name.substring(0, 2).toUpperCase();
+        }
+
+        function formatTime(timestamp) {
+            if (!timestamp) return '';
+            
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diffInMs = now - date;
+            const diffInHours = diffInMs / (1000 * 60 * 60);
+
+            if (diffInHours < 24) {
+                return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            } else if (diffInHours < 48) {
+                return 'Yesterday';
+            } else {
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            }
+        }
+
+        function formatMessageTime(timestamp) {
+            if (!timestamp) return '';
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById('messagesContainer');
+            setTimeout(() => {
+                container.scrollTop = container.scrollHeight;
+            }, 100);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Initialize app when page loads
+        window.addEventListener('load', init);
+    </script>
 </body>
 </html>
-<script>
-  let limit=50
-  let offset=0
-  document.addEventListener("alpine:init",()=>{
-    Alpine.store('globalVar',{
-      'chatlist':[],
-      'active_chat':0
-    })
-    get_all_chatlist()
-  })
-
-  async function get_all_chatlist(){
-    const response = await fetch('/talklet/get-all-chatlist') 
-    const data=await response.json()
-    Alpine.store('globalVar').chatlist=data
-    console.log("global chatlist - ",Alpine.store('globalVar').chatlist)
-  }
-  async function LoadOlderMessages(contact_id){
-    console.log('contact_id - ',contact_id)
-    const response = await fetch(`/talklet/chat-history/${contact_id}?limit=${limit}&offset=${offset}`)
-    const data= await response.json()
-    console.log('chat messages - ',data)
-    offset+=limit
-  }
-  
-  function validateFile(){
-    const file_section=document.getElementById("file-section")
-    const element=document.createElement("h4")
-    const input_file = document.getElementById("excel-sheet")
-    const excel_sheet = input_file.files[0]
-    
-    if(!excel_sheet){
-      element.innerText="No file selected ❌"
-      file_section.append(element)
-      setTimeout(() => {
-        element.innerText=""
-      }, 5000);
-    }
-    else{ 
-      file_name=excel_sheet.name
-      console.log("excel_sheet - ",excel_sheet)
-      createGroupByExel(excel_sheet)
-    }
-
-    // const file_extension=file_name.split(".")[1]
-    // console.log(file_extension)
-    // if(file_extension=="xlsx"){
-    //   element.innerText="uploaded successfull ✅"
-    //   createGroupByExel()
-      
-    // }else{
-    //   element.innerText="upload only exel sheet ❌"
-    // }
-    // file_section.append(element)
-    // setTimeout(() => {
-    //   element.innerText=""
-    // }, 5000);
-  }
-  
-  async function createGroupByExel(excelFile){
-    const ExcelForm = new FormData()
-    ExcelForm.append("excel_file",excelFile)
-    const response = await fetch("/talklet/creategroup-with-excel",{
-      method : "POST",
-      body : ExcelForm
-    })
-    const data = await response.json()
-    console.log("response data for group creation - ",data)
-  }
-</script>

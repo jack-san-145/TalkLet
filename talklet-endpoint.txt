@@ -1,0 +1,670 @@
+//talklet
+
+1. student login :
+
+endpoint: "http://localhost:8989/talklet/validate-student-login"
+method : Post (body -> x-www-form-urlencoded) 
+
+frontend -> backend(request):
+{
+    "roll_no":"23ucs145",
+    "password":"@san"
+}
+
+backend -> frontend (response):
+{
+    "valid":true (or)
+    "valid":false
+}
+
+
+
+
+
+
+
+2. send staff Otp :
+
+endpoint: "http://localhost:8989/talklet/send-otp-staff"
+method : Post (body -> x-www-form-urlencoded) 
+
+frontend -> backend(request):
+{
+    "email":"vikashcse@kamarajengg.edu.in"
+}
+
+backend -> frontend (response):
+{
+   "otp_status": "failed",
+   "otp_status": "You have already registered",
+   "otp_status": "success"
+}
+
+
+
+
+
+
+
+
+3. send Student OTP:
+
+endpoint: "http://localhost:8989/talklet/send-otp-student"
+method : Post (body -> x-www-form-urlencoded) 
+
+frontend -> backend(request):
+{
+    "email":"23ucs145@kamarajengg.edu.in"
+}
+
+backend -> frontend (response):
+{
+   "otp_status": "failed",
+   "otp_status": "You have not registered yet",
+   "otp_status": "success"
+}
+
+
+
+
+
+
+
+4. verify student otp :
+ 
+endpoint: "http://localhost:8989/talklet/verify-otp-student"
+method : Post (body -> x-www-form-urlencoded) 
+
+frontend -> backend(request):
+{
+    "email":"23ucs145@kamarajengg.edu.in"
+    "otp":"382423"
+}
+
+backend -> frontend (response):
+{
+   		"otp_valid":false (or)
+        "otp_valid":true
+}
+
+
+
+
+
+
+
+5. verify staff otp :
+ 
+endpoint: "http://localhost:8989/talklet/verify-otp-staff"
+method : Post (body -> x-www-form-urlencoded) 
+
+frontend -> backend(request):
+{
+    "email":"vikashcse@kamarajengg.edu.in"
+    "otp":"382423"
+}
+
+backend -> frontend (response):
+{
+   		"otp_valid":false (or)
+        "otp_valid":true
+}
+
+
+
+
+
+
+
+6. Register new staff:
+
+endpoint: "http://localhost:8989/talklet/register-new-staff"
+method : Post (body -> x-www-form-urlencoded) 
+
+frontend -> backend(request):
+{
+    "staff_id":"T2505786",
+    "name":"S.S.VIKASH",
+    "dob":"2005-10-20",
+    "email":"vikashcse@kamarajengg.edu.in",
+    "password":"Vikash-2010",
+    "department":"CSE",
+    "otp":"382423"
+
+}
+
+backend -> frontend (response):
+{
+   		"status": "Invalid OTP",
+        "status": "You have already registered",
+        "status": "Department Mismatch",
+        "status": "success"
+}
+
+
+
+
+7. staff login :
+
+endpoint: "http://localhost:8989/talklet/validate-staff-login"
+method : Post (body -> x-www-form-urlencoded) 
+
+frontend -> backend(request):
+{
+    "staff_id":"T2505786",
+    "password":"Vikash-2010"
+}
+
+backend -> frontend (response):
+{
+    "valid":true (or)
+    "valid":false
+}
+
+8. Set password:
+
+endpoint: "http://localhost:8989/talklet/set-password"
+method : Post (body -> x-www-form-urlencoded) 
+
+frontend -> backend(request):
+{
+    "email":"23ucs145@kamarajengg.edu.in",
+    "password":"@san"
+}
+
+backend -> frontend (response):
+{
+    "status": false (or)
+    "status": true
+}
+
+
+
+
+
+9. Get chatlist :
+
+endpoint: "http://localhost:8989/talklet/get-all-chatlist"
+method : Get
+
+backend -> frontend (response):
+{
+    [
+        {
+            "user_id": "23ucs145",
+            "contact_id": "23ucs099",
+            "contact_name": "SANJAIVINAYAGN V",
+            "last_msg": "Im fine !!",
+            "last_msg_id": "0",
+            "created_at": "2026-02-05 14:39:02",
+            "is_group": false,
+            "group_id": "",
+            "group_name": ""
+        }
+    ]
+}
+ 
+
+
+10. Load private chat history :
+
+// query paramater = /talklet/chat-history/${contact_id}?limit=${limit}&offset=${offset}
+
+endpoint: " http://localhost:8989/talklet/chat-history/23ucs145?limit=60&offset=0"
+method : Get
+
+
+backend to fronted:
+{
+    [
+        {
+            "msg_id": 203,
+            "sender_id": "23ucs145",
+            "receiver_id": "23ucs099",
+            "is_group": false,
+            "group_id": "",
+            "sender_dept": "",
+            "type": "media",
+            "content": "",
+            "created_at": "2025-09-10 06:41:58",
+            "actual_file": null,
+            "meta_data": {
+                "file_name": "11.11.png",
+                "file_url": "http://localhost:9000/talklet-media//chats/private/23ucs145/23ucs099/203/11.11.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=Jack-san-145%2F20260212%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260212T090825Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=7418ac97e82c18f393d903876cd04453dc4846522af38c26381ef972f6dc74b3",
+                "file_size": 6048824,
+                "mime_type": "image/png"
+            },
+            "is_ack": "",
+            "status": "sent"
+        },
+        {
+            "msg_id": 202,
+            "sender_id": "23ucs145",
+            "receiver_id": "23ucs099",
+            "is_group": false,
+            "group_id": "",
+            "sender_dept": "",
+            "type": "media",
+            "content": "",
+            "created_at": "2025-09-10 06:34:35",
+            "actual_file": null,
+            "meta_data": {
+                "file_name": "11.11.png",
+                "file_url": "http://localhost:9000/talklet-media//chats/private/23ucs145/23ucs099/202/11.11.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=Jack-san-145%2F20260212%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260212T090825Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=79990b8be4c437d27247f547ba31446e068bb2e57b6b10f7539ec81f14cae673",
+                "file_size": 6048824,
+                "mime_type": "image/png"
+            },
+            "is_ack": "",
+            "status": "sent"
+        },
+        {
+            "msg_id": 200,
+            "sender_id": "23ucs145",
+            "receiver_id": "23ucs099",
+            "is_group": false,
+            "group_id": "",
+            "sender_dept": "",
+            "type": "text/plain",
+            "content": "hmm ",
+            "created_at": "2025-09-09 06:28:45",
+            "actual_file": null,
+            "meta_data": {
+                "file_name": "",
+                "file_url": "",
+                "file_size": 0,
+                "mime_type": ""
+            },
+            "is_ack": "",
+            "status": "sent"
+        },
+        {
+            "msg_id": 199,
+            "sender_id": "23ucs145",
+            "receiver_id": "23ucs145",
+            "is_group": false,
+            "group_id": "",
+            "sender_dept": "",
+            "type": "text/plain",
+            "content": "seri",
+            "created_at": "2025-09-10 06:31:19",
+            "actual_file": null,
+            "meta_data": {
+                "file_name": "",
+                "file_url": "",
+                "file_size": 0,
+                "mime_type": ""
+            },
+            "is_ack": "",
+            "status": "sent"
+        },
+        {
+            "msg_id": 198,
+            "sender_id": "23ucs145",
+            "receiver_id": "23ucs099",
+            "is_group": false,
+            "group_id": "",
+            "sender_dept": "",
+            "type": "text/plain",
+            "content": "nangalutha ",
+            "created_at": "2025-09-09 06:28:45",
+            "actual_file": null,
+            "meta_data": {
+                "file_name": "",
+                "file_url": "",
+                "file_size": 0,
+                "mime_type": ""
+            },
+            "is_ack": "",
+            "status": "sent"
+        },
+        {
+            "msg_id": 197,
+            "sender_id": "23ucs145",
+            "receiver_id": "23ucs099",
+            "is_group": false,
+            "group_id": "",
+            "sender_dept": "",
+            "type": "text/plain",
+            "content": "nangalutha ",
+            "created_at": "2025-09-09 06:28:45",
+            "actual_file": null,
+            "meta_data": {
+                "file_name": "",
+                "file_url": "",
+                "file_size": 0,
+                "mime_type": ""
+            },
+            "is_ack": "",
+            "status": "sent"
+        },
+        {
+            "msg_id": 196,
+            "sender_id": "23ucs145",
+            "receiver_id": "23ucs145",
+            "is_group": false,
+            "group_id": "",
+            "sender_dept": "",
+            "type": "text/plain",
+            "content": "neenga",
+            "created_at": "2025-09-10 06:30:58",
+            "actual_file": null,
+            "meta_data": {
+                "file_name": "",
+                "file_url": "",
+                "file_size": 0,
+                "mime_type": ""
+            },
+            "is_ack": "",
+            "status": "sent"
+        },
+        {
+            "msg_id": 195,
+            "sender_id": "23ucs145",
+            "receiver_id": "23ucs145",
+            "is_group": false,
+            "group_id": "",
+            "sender_dept": "",
+            "type": "text/plain",
+            "content": "vanthachu",
+            "created_at": "2025-09-10 06:30:46",
+            "actual_file": null,
+            "meta_data": {
+                "file_name": "",
+                "file_url": "",
+                "file_size": 0,
+                "mime_type": ""
+            },
+            "is_ack": "",
+            "status": "sent"
+        },
+        {
+            "msg_id": 194,
+            "sender_id": "23ucs145",
+            "receiver_id": "23ucs099",
+            "is_group": false,
+            "group_id": "",
+            "sender_dept": "",
+            "type": "text/plain",
+            "content": "vantiya ",
+            "created_at": "2025-09-09 06:28:45",
+            "actual_file": null,
+            "meta_data": {
+                "file_name": "",
+                "file_url": "",
+                "file_size": 0,
+                "mime_type": ""
+            },
+            "is_ack": "",
+            "status": "sent"
+        },
+        {
+            "msg_id": 193,
+            "sender_id": "23ucs145",
+            "receiver_id": "23ucs145",
+            "is_group": false,
+            "group_id": "",
+            "sender_dept": "",
+            "type": "text/plain",
+            "content": "sollu mapla",
+            "created_at": "2025-09-10 06:30:09",
+            "actual_file": null,
+            "meta_data": {
+                "file_name": "",
+                "file_url": "",
+                "file_size": 0,
+                "mime_type": ""
+            },
+            "is_ack": "",
+            "status": "sent"
+        }
+    ]
+}
+
+
+11. Load all class members:
+
+endpoint: "http://localhost:8989/talklet/get-all-contacts"
+method : Get
+
+
+backend to fronted:
+{
+    [
+        {
+            "roll_no": "23ucs001",
+            "name": "VIKASH S S"
+        },
+        {
+            "roll_no": "23ucs006",
+            "name": "BHAVA AKSHAYA M"
+        },
+        {
+            "roll_no": "23ucs009",
+            "name": "JEYANI J"
+        },
+        {
+            "roll_no": "23ucs018",
+            "name": "HEMAMALINI S A"
+        },
+        {
+            "roll_no": "23ucs023",
+            "name": "RAKESH M"
+        },
+        {
+            "roll_no": "23ucs025",
+            "name": "THANGA ABIRAMI P"
+        },
+        {
+            "roll_no": "23ucs029",
+            "name": "MANOJ KRISHNAN V"
+        },
+        {
+            "roll_no": "23ucs030",
+            "name": "MANIKANDAN V"
+        },
+        {
+            "roll_no": "23ucs032",
+            "name": "ROSHAN S"
+        },
+        {
+            "roll_no": "23ucs034",
+            "name": "BIYORA MAHALAKSHMI R"
+        },
+        {
+            "roll_no": "23ucs037",
+            "name": "GABRIEL ANTO JOSHUA S"
+        },
+        {
+            "roll_no": "23ucs040",
+            "name": "AJAY K"
+        },
+        {
+            "roll_no": "23ucs042",
+            "name": "AVANTHIKA S S"
+        },
+        {
+            "roll_no": "23ucs043",
+            "name": "ARUNA P"
+        },
+        {
+            "roll_no": "23ucs044",
+            "name": "JAFLET EVANGELINE I"
+        },
+        {
+            "roll_no": "23ucs045",
+            "name": "VISWANTHKANTHA PANDIYAN S"
+        },
+        {
+            "roll_no": "23ucs046",
+            "name": "GNANA PRASANTH M"
+        },
+        {
+            "roll_no": "23ucs048",
+            "name": "VIONA V"
+        },
+        {
+            "roll_no": "23ucs052",
+            "name": "NATHIPRIYA R"
+        },
+        {
+            "roll_no": "23ucs053",
+            "name": "RAHUL ARUL MANI K"
+        },
+        {
+            "roll_no": "23ucs056",
+            "name": "VISHALIS"
+        },
+        {
+            "roll_no": "23ucs060",
+            "name": "VISHALV P"
+        },
+        {
+            "roll_no": "23ucs068",
+            "name": "KUMARAN M"
+        },
+        {
+            "roll_no": "23ucs069",
+            "name": "VAIRA SELVI S"
+        },
+        {
+            "roll_no": "23ucs070",
+            "name": "PRANITHA S"
+        },
+        {
+            "roll_no": "23ucs075",
+            "name": "VIJAYALAKSHMI M"
+        },
+        {
+            "roll_no": "23ucs076",
+            "name": "DHANALAKSHMI R"
+        },
+        {
+            "roll_no": "23ucs077",
+            "name": "MADHUMITHA M"
+        },
+        {
+            "roll_no": "23ucs082",
+            "name": "JOEL JEBARAJ S"
+        },
+        {
+            "roll_no": "23ucs087",
+            "name": "FRANCICA M"
+        },
+        {
+            "roll_no": "23ucso96",
+            "name": "DHARUN NAGAVEL R"
+        },
+        {
+            "roll_no": "23ucs102",
+            "name": "LAVANYA B"
+        },
+        {
+            "roll_no": "23ucs104",
+            "name": "DHARSHINI G"
+        },
+        {
+            "roll_no": "23ucs112",
+            "name": "VELAVAN K"
+        },
+        {
+            "roll_no": "23ucs113",
+            "name": "MAREESWARI R"
+        },
+        {
+            "roll_no": "23ucs116",
+            "name": "NAVEEN KUMAR K"
+        },
+        {
+            "roll_no": "23ucs119",
+            "name": "MOHANAPRIYA K"
+        },
+        {
+            "roll_no": "23ucs120",
+            "name": "SUKUMAR M"
+        },
+        {
+            "roll_no": "23ucs122",
+            "name": "RAMALINGAM G"
+        },
+        {
+            "roll_no": "23ucs127",
+            "name": "PONVASI RAJAN V"
+        },
+        {
+            "roll_no": "23ucs133",
+            "name": "SONIA G"
+        },
+        {
+            "roll_no": "23ucs134",
+            "name": "SUBASS RAJA S T R"
+        },
+        {
+            "roll_no": "23ucs136",
+            "name": "YOGACHANDRA SHRI S"
+        },
+        {
+            "roll_no": "23ucs140",
+            "name": "KANAGALAKSHM I"
+        },
+        {
+            "roll_no": "23ucs141",
+            "name": "JOHN GITHIYON E"
+        },
+        {
+            "roll_no": "23ucs146",
+            "name": "SATHYA M"
+        },
+        {
+            "roll_no": "23ucs147",
+            "name": "SANJITH V"
+        },
+        {
+            "roll_no": "23ucs149",
+            "name": "SHIVANI SRI M"
+        },
+        {
+            "roll_no": "23ucs150",
+            "name": "ANBARASAN C"
+        },
+        {
+            "roll_no": "23ucs156",
+            "name": "MOHANA SUNDARESWARAR B"
+        },
+        {
+            "roll_no": "23ucs126",
+            "name": "DHARUN R"
+        },
+        {
+            "roll_no": "23ucs160",
+            "name": "MADHAVAN T"
+        },
+        {
+            "roll_no": "23ucs164",
+            "name": "SHALINI S"
+        },
+        {
+            "roll_no": "23ucs171",
+            "name": "ANANTHA KRISHNAN R"
+        },
+        {
+            "roll_no": "23ucs172",
+            "name": "SANJAY M"
+        },
+        {
+            "roll_no": "23ucs175",
+            "name": "JAYAPRAKASH T"
+        },
+        {
+            "roll_no": "23ucs177",
+            "name": "SIDDARTH T.K"
+        },
+        {
+            "roll_no": "23ucs145",
+            "name": "SANTHOSH KUMAR S"
+        },
+        {
+            "roll_no": "23ucs099",
+            "name": "SANJAIVINAYAGN V"
+        }
+    ]
+}

@@ -19,6 +19,7 @@ func SetPassword(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&user_password)
 	if err != nil {
 		fmt.Println("error while decoding the password - ", err)
+		WriteJSON(w, r, map[string]bool{"status": false})
 		return
 	}
 	fmt.Println("user_pass - ", user_password.Pass)
@@ -26,14 +27,16 @@ func SetPassword(w http.ResponseWriter, r *http.Request) {
 	bcryted_password, err = bcrypt.GenerateFromPassword([]byte(user_password.Pass), 14)
 	if err != nil {
 		fmt.Println("error while generating the password - ", err)
+		WriteJSON(w, r, map[string]bool{"status": false})
 		return
 	}
 	fmt.Println("Bcrypt_Password - ", string(bcryted_password))
 	err = postgres.SetPasswordDB(user_password.Email, string(bcryted_password))
 	fmt.Println("error - ", err)
-	if err == nil {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-		return
-	}
+	WriteJSON(w, r, map[string]bool{"status": true})
+	// if err == nil {
+	// 	http.Redirect(w, r, "/", http.StatusSeeOther)
+	// 	return
+	// }
 
 }

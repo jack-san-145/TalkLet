@@ -232,3 +232,25 @@ func Load_GroupChatMessages_PDb(userID string, groupID string, limit int, offset
 	fmt.Printf("message for the group_id - %v is %v", groupID, AllMessages)
 	return AllMessages, nil
 }
+
+func GetAllContacts(dept_table string) []models.Contact {
+	var Allcontacts []models.Contact
+
+	query := fmt.Sprintf(`select roll_no,name from %s`, dept_table)
+	rows, err := pool.Query(context.Background(), query)
+	if err != nil {
+		fmt.Println("error while accessing all contacts - ", err)
+		return Allcontacts
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var contact models.Contact
+		err := rows.Scan(&contact.Roll_no, &contact.Name)
+		if err != nil {
+			fmt.Println("error while scanning contact - ", err)
+		}
+		Allcontacts = append(Allcontacts, contact)
+	}
+	return Allcontacts
+}

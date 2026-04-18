@@ -34,10 +34,12 @@ func StudentLoginValidationHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("roll no from initial student login handler - ", roll_no)
 	roll_no, isValid := postgres.ValidateStudentLogin(roll_no, password)
 	if !isValid {
-		w.Write([]byte("<p>Invalid username or Password ❌</p>"))
+		// w.Write([]byte("<p>Invalid username or Password ❌</p>"))
+		WriteJSON(w, r, map[string]bool{"valid": false})
 		return
 	}
 	createSession(roll_no, w)
+	WriteJSON(w, r, map[string]bool{"valid": true})
 }
 
 func StaffLoginValidationHandler(w http.ResponseWriter, r *http.Request) {
@@ -50,10 +52,12 @@ func StaffLoginValidationHandler(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	staff_id, isValid := postgres.ValidateStaffLogin(staff_id, password)
 	if !isValid {
-		w.Write([]byte("<p>Invalid username or Password ❌</p>"))
+		// w.Write([]byte("<p>Invalid username or Password ❌</p>"))
+		WriteJSON(w, r, map[string]bool{"valid": false})
 		return
 	}
 	createSession(staff_id, w)
+	WriteJSON(w, r, map[string]bool{"valid": true})
 }
 
 func createSession(id string, w http.ResponseWriter) {

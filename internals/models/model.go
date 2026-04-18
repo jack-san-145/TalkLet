@@ -117,3 +117,8 @@ type StudentDetails struct {
 	Chairperson  string
 	Mentor       string
 }
+
+type Contact struct {
+	Roll_no string `json:"roll_no"`
+	Name    string `json:"name"`
+}

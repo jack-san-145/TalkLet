@@ -72,24 +72,28 @@ func StaffRegistration(w http.ResponseWriter, r *http.Request) {
 	new_staff.Dept = r.FormValue("department")
 	otp := r.FormValue("otp")
 	if otp == "" {
-		w.Write([]byte("<p> invalid OTP ❌<p>"))
+		// w.Write([]byte("<p> invalid OTP ❌<p>"))
+		WriteJSON(w, r, map[string]string{"status": "Invalid OTP"})
 		return
 	}
 	isValid := VerifyOTP_for_staff(w, r, new_staff.Email, otp)
 	fmt.Println("returned value from the VerifyOTP_for_staff - ", isValid)
 	if !isValid {
-		w.Write([]byte("<p> invalid OTP ❌<p>"))
+		// w.Write([]byte("<p> invalid OTP ❌<p>"))
+		WriteJSON(w, r, map[string]string{"status": "Invalid OTP"})
 		return
 	}
 
 	if postgres.ValidateEmail(new_staff.Email, "all_staffs") {
-		w.Write([]byte("<p>You have already registered ❌</p>"))
+		// w.Write([]byte("<p>You have already registered ❌</p>"))
+		WriteJSON(w, r, map[string]string{"status": "You have already registered"})
 		return
 	}
 	fmt.Println("dept from new_staff.Dept - ", new_staff.Dept)
 	fmt.Println("comparing departments - ", new_staff.Dept == services.Find_dept_from_staff_email(new_staff.Email))
 	if new_staff.Dept != services.Find_dept_from_staff_email(new_staff.Email) {
-		w.Write([]byte("<p>Department Mismatch</P>"))
+		// w.Write([]byte("<p>Department Mismatch</P>"))
+		WriteJSON(w, r, map[string]string{"status": "Department Mismatch"})
 		return
 	}
 	//bcrypt the staff's password
@@ -103,4 +107,5 @@ func StaffRegistration(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("new staff - %+v", new_staff)
 	postgres.NewStaffRegisterPDB(new_staff)
+	WriteJSON(w, r, map[string]string{"status": "success"})
 }

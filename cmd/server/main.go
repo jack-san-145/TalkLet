@@ -63,7 +63,7 @@ func main() {
 	router.Post("/talklet/validate-student-login", handlers.StudentLoginValidationHandler)
 	router.Post("/talklet/validate-staff-login", handlers.StaffLoginValidationHandler)
 
-	router.Get("/ws", websocket.UpgradeToWebsocket)
+	router.Get("/talklet/ws", websocket.UpgradeToWebsocket)
 
 	router.Post("/talklet/register-new-staff", handlers.StaffRegistration)
 	router.Post("/talklet/creategroup-with-excel", handlers.GroupCreationByExcel)
@@ -74,6 +74,7 @@ func main() {
 
 	router.Post("/talklet/create-new-group", handlers.GroupCreation)
 
+	router.Get("/talklet/get-all-contacts", handlers.GetAllContactsHandeler)
 	router.Post("/talklet/chat/file-upload", handlers.ChatFileUploads)
 	postgres.ConnectToDb()    //connect to postgres
 	redis.CreateRedisClient() //create redis client
@@ -91,7 +92,7 @@ func main() {
 
 	// postgres.DropAllTable()
 
-	// go postgres.AddNewDepartment("cs")
+	// postgres.AddNewDepartment("cs")
 	// go postgres.AddNewDepartment("ad")
 	// go postgres.AddNewDepartment("bt")
 	// go postgres.AddNewDepartment("ec")
@@ -105,7 +106,7 @@ func main() {
 	// postgres.AlterTable()
 	fmt.Println("server running")
 	port := ":" + os.Getenv("PORT")
-	err = http.ListenAndServe("0.0.0.0"+port, router)
+	err = http.ListenAndServe("talklet"+port, router)
 	if err != nil {
 		fmt.Println("server failure - ", err)
 	}

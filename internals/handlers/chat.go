@@ -2,10 +2,12 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strconv"
+	"tet/internals/services"
 	"tet/internals/storage/postgres"
+
+	"github.com/go-chi/chi/v5"
 )
 
 func Chatlist(w http.ResponseWriter, r *http.Request) {
@@ -61,5 +63,17 @@ func LoadGroupChatMessages(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println("from the LoadChatMessages handlers - ", AllMessages)
 	WriteJSON(w, r, AllMessages)
+
+}
+
+func GetAllContactsHandeler(w http.ResponseWriter, r *http.Request) {
+	isFound, userID := FindCookie(r)
+	if !isFound {
+		return
+	}
+
+	_, dpt_table, _ := services.Find_dept_from_rollNo(userID)
+	Allcontacts := postgres.GetAllContacts(dpt_table)
+	WriteJSON(w, r, Allcontacts)
 
 }
